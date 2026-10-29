@@ -1,6 +1,6 @@
-# Knowtific Claude Code plugins
+# Knowtific redesign plugin
 
-Private plugin marketplace for Knowtific client work.
+Claude Code marketplace (`knowtific-redesign`) for Knowtific client website redesigns.
 
 | Plugin | What it does |
 |---|---|
@@ -8,22 +8,20 @@ Private plugin marketplace for Knowtific client work.
 
 ## Install
 
-Put this folder somewhere permanent (or push it to a private GitHub repo), then in Claude Code:
+In Claude Code:
 
 ```
-/plugin marketplace add ~/path/to/knowtific-redesign-plugin        # or: /plugin marketplace add your-org/knowtific-redesign-plugin
-/plugin install knowtific-redesign-plugin@knowtific
+/plugin marketplace add ahadyekta/knowtific-redesign-plugin
+/plugin install knowtific-redesign-plugin@knowtific-redesign
 ```
 
-Restart Claude Code, then install the script dependencies once:
+Restart Claude Code. Requires Node 18.17+. The script dependencies (Playwright, Lighthouse, axe,
+Tailwind browser build) and Chromium are installed into the plugin's installed folder the first
+time the skill runs. Each new plugin version installs to a new folder, so this repeats once after
+an update. To do it by hand: run `npm install` and `npx playwright install chromium` in the
+installed plugin's `scripts/` folder.
 
-```bash
-cd ~/path/to/knowtific-redesign-plugin/plugins/knowtific-redesign-plugin/scripts
-npm install
-npx playwright install chromium
-```
-
-Requires Node 18.17+.
+Update: `/plugin marketplace update knowtific-redesign`, then reinstall or update the plugin.
 
 ## Use
 

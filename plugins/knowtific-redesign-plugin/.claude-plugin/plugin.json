@@ -1,11 +1,20 @@
 {
   "name": "knowtific-redesign-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "End-to-end website redesign for an existing client site: business discovery, full multi-dimension audit, internal and client reports, improvement plan, 3 brand directions, 3 variations of the 3 key pages, and a live comparison viewer.",
   "author": {
     "name": "Knowtific",
     "url": "https://knowtific.com.au"
   },
   "homepage": "https://knowtific.com.au",
-  "keywords": ["redesign", "website audit", "seo", "ux", "accessibility", "branding", "conversion", "landing pages"]
+  "keywords": [
+    "redesign",
+    "website audit",
+    "seo",
+    "ux",
+    "accessibility",
+    "branding",
+    "conversion",
+    "landing pages"
+  ]
 }
