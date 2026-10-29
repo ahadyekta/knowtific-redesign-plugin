@@ -1,0 +1,14 @@
+{
+  "name": "knowtific-redesign-plugin-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Crawler, technical audit, preview builder and helpers for the knowtific-redesign-plugin Claude Code plugin",
+  "engines": { "node": ">=18.17" },
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@tailwindcss/browser": "^4.1.0",
+    "chrome-launcher": "^1.1.2",
+    "lighthouse": "^12.2.0",
+    "playwright": "^1.48.0"
+  }
+}

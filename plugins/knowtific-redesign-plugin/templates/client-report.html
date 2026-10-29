@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{Client}} – Website & growth review</title>
+<!--
+  CLIENT REPORT TEMPLATE (knowtific-redesign-plugin)
+  - Fill every {{...}}. Repeat the blocks marked "repeat: name" ... "/repeat" in comments.
+  - Image paths are relative to redesign/03-reports/ (screenshots live in ../02-audit/crawl/shots/).
+  - Plain English, respectful, max 5 problems. Render PDF: node scripts/to-pdf.mjs client-report.html
+  - Agency colours: change --agency and --agency-ink below.
+-->
+<style>
+@page { size: A4; margin: 0; }
+:root{
+  --agency:#1F3A5F; --agency-ink:#fff; --accent:#E9A23B;
+  --ink:#1B1E23; --muted:#5E6570; --line:#E4E6EA; --soft:#F5F6F8;
+  --good:#1E7B4D; --ok:#B7791F; --bad:#C0392B;
+}
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:#E9EAEE;color:var(--ink);font:11pt/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif}
+.page{width:210mm;min-height:297mm;margin:12mm auto;background:#fff;padding:18mm 18mm 16mm;position:relative;page-break-after:always;break-after:page;box-shadow:0 2px 16px rgba(0,0,0,.08);overflow:hidden}
+.page:last-child{page-break-after:auto;break-after:auto}
+@media print{ body{background:#fff} .page{margin:0;box-shadow:none} }
+h1,h2,h3{line-height:1.15;margin:0 0 6mm;letter-spacing:-.01em}
+h1{font-size:30pt} h2{font-size:20pt} h3{font-size:13pt;margin-bottom:2mm}
+p{margin:0 0 3mm} .muted{color:var(--muted)}
+.eyebrow{font-size:8.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--agency);margin-bottom:3mm}
+.foot{position:absolute;left:18mm;right:18mm;bottom:9mm;display:flex;justify-content:space-between;font-size:8pt;color:var(--muted)}
+
+/* cover */
+.cover{height:297mm;background:var(--agency);color:var(--agency-ink);display:flex;flex-direction:column;padding:22mm 18mm}
+.cover .eyebrow{color:var(--accent)}
+.cover h1{font-size:36pt;margin-top:auto}
+.cover .sub{font-size:14pt;opacity:.85;max-width:140mm}
+.cover .meta{margin-top:10mm;font-size:10pt;opacity:.8}
+.cover .shots{display:flex;gap:6mm;align-items:flex-end;margin-top:12mm}
+.cover .shots img{border-radius:3mm;box-shadow:0 6px 24px rgba(0,0,0,.35);background:#fff}
+.cover .shots .d{width:118mm;height:72mm;object-fit:cover;object-position:top}
+.cover .shots .m{width:36mm;height:72mm;object-fit:cover;object-position:top}
+
+/* blocks */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm}
+.box{background:var(--soft);border-radius:3mm;padding:5mm}
+.box h3{font-size:11pt}
+ul.tidy{margin:0;padding-left:4.5mm} ul.tidy li{margin:0 0 1.5mm}
+.quote{border-left:3px solid var(--accent);padding:1mm 0 1mm 4mm;font-size:12.5pt;margin:4mm 0 6mm}
+
+/* scorecard */
+.overall{display:flex;align-items:center;gap:6mm;margin-bottom:6mm}
+.overall .big{font-size:40pt;font-weight:800;color:var(--agency);line-height:1}
+.bar{display:grid;grid-template-columns:44mm 1fr 12mm;align-items:center;gap:4mm;padding:2.2mm 0;border-bottom:1px solid var(--line)}
+.bar .track{height:3.2mm;background:var(--soft);border-radius:2mm;overflow:hidden}
+.bar .fill{height:100%;border-radius:2mm}
+.bar .why{grid-column:2 / 4;font-size:9pt;color:var(--muted);margin-top:-1mm}
+.lv-bad{background:var(--bad)} .lv-ok{background:var(--ok)} .lv-good{background:var(--good)}
+.bar b:last-child{text-align:right}
+
+/* problems */
+.problem{display:grid;grid-template-columns:62mm 1fr;gap:6mm;padding:5mm 0;border-bottom:1px solid var(--line);break-inside:avoid}
+.problem img{width:100%;height:46mm;object-fit:cover;object-position:top;border-radius:2mm;border:1px solid var(--line)}
+.problem .n{display:inline-block;background:var(--bad);color:#fff;font-weight:800;border-radius:50%;width:6.5mm;height:6.5mm;text-align:center;line-height:6.5mm;font-size:9pt;margin-right:2mm}
+.problem .fix{margin-top:2mm;font-size:10pt}
+.problem .fix b{color:var(--good)}
+
+/* compare */
+table.cmp{width:100%;border-collapse:collapse;font-size:9.5pt}
+table.cmp th,table.cmp td{padding:2.5mm 2mm;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp th{font-size:8pt;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.y{color:var(--good);font-weight:700} .n{color:var(--bad);font-weight:700}
+
+/* plan */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm;counter-reset:s}
+.step{border-top:3px solid var(--agency);padding-top:4mm}
+.step .when{font-size:9pt;color:var(--muted);font-weight:700}
+
+/* packages */
+.pk{border:1px solid var(--line);border-radius:3mm;padding:5mm;display:flex;flex-direction:column}
+.pk.rec{border:2px solid var(--agency);position:relative}
+.pk.rec::before{content:"Recommended";position:absolute;top:-3.2mm;left:5mm;background:var(--agency);color:var(--agency-ink);font-size:8pt;font-weight:700;padding:0.8mm 2.5mm;border-radius:2mm}
+.pk .price{font-size:18pt;font-weight:800;margin:2mm 0}
+.pk .out{font-weight:600;margin-bottom:3mm}
+.pk ul{padding-left:4.5mm;margin:0;font-size:9.5pt}
+.cta{background:var(--agency);color:var(--agency-ink);border-radius:3mm;padding:8mm;margin-top:8mm}
+.cta h2{margin-bottom:3mm}
+</style>
+</head>
+<body>
+
+<!-- 1. COVER -->
+<section class="page cover">
+  <div class="eyebrow">Website &amp; growth review</div>
+  <h1>{{Client}}</h1>
+  <p class="sub">{{One-line promise, e.g. “How your website can bring in more hot-water jobs from people searching on their phones.”}}</p>
+  <div class="shots">
+    <img class="d" src="../02-audit/crawl/shots/home--desktop-fold.png" alt="Current home page on desktop">
+    <img class="m" src="../02-audit/crawl/shots/home--mobile-fold.png" alt="Current home page on a phone">
+  </div>
+  <div class="meta">Prepared by {{Agency}} · {{Date}} · {{Site URL}}</div>
+</section>
+
+<!-- 2. WHAT WE LEARNED -->
+<section class="page">
+  <div class="eyebrow">What we learned about your business</div>
+  <h2>{{Headline that shows we listened, e.g. “People call you when they need hot water back today.”}}</h2>
+  <p class="quote">{{Positioning statement in plain words}}</p>
+  <div class="grid2">
+    <div class="box"><h3>Your best customers</h3><ul class="tidy"><li>{{...}}</li></ul></div>
+    <div class="box"><h3>Why they choose you</h3><ul class="tidy"><li>{{...}}</li></ul></div>
+    <div class="box"><h3>Services that matter most</h3><ul class="tidy"><li>{{...}}</li></ul></div>
+    <div class="box"><h3>What your website needs to do</h3><p>{{Primary conversion, e.g. “Get people to call or request a quote within 30 seconds.”}}</p></div>
+  </div>
+  <div class="foot"><span>{{Client}} · Website &amp; growth review</span><span>2</span></div>
+</section>
+
+<!-- 3. SCORECARD -->
+<section class="page">
+  <div class="eyebrow">How your website scores today</div>
+  <div class="overall"><div class="big">{{4.6}}<span style="font-size:16pt;color:var(--muted)">/10</span></div><p class="muted" style="margin:0">{{One sentence: what the score means in business terms.}}</p></div>
+  <!-- repeat: bar (max 8; class lv-bad <5, lv-ok 5-6.9, lv-good 7+) -->
+  <div class="bar"><b>{{Clear message}}</b><div class="track"><div class="fill lv-bad" style="width:{{40}}%"></div></div><b>{{4}}</b><div class="why">{{Plain-English reason}}</div></div>
+  <!-- /repeat -->
+  <p class="muted" style="margin-top:6mm;font-size:9pt">Scores compare your site with what customers expect from a business like yours today. 5 is average for a small business website; 8 would put you ahead of local competitors.</p>
+  <div class="foot"><span>{{Client}} · Website &amp; growth review</span><span>3</span></div>
+</section>
+
+<!-- 4. WHAT'S COSTING YOU ENQUIRIES -->
+<section class="page">
+  <div class="eyebrow">What’s costing you enquiries</div>
+  <h2>The 5 biggest problems</h2>
+  <!-- repeat: problem (top 5 only) -->
+  <div class="problem">
+    <img src="../02-audit/crawl/shots/{{slug}}--mobile-fold.png" alt="{{What the screenshot shows}}">
+    <div>
+      <h3><span class="n">1</span>{{Problem in customer terms}}</h3>
+      <p>{{What happens to a real visitor because of it. Use a number if you have one.}}</p>
+      <p class="fix"><b>What we’ll do:</b> {{Fix in one sentence}}</p>
+    </div>
+  </div>
+  <!-- /repeat -->
+  <p class="muted" style="margin-top:4mm">Plus {{37}} smaller fixes (speed, Google settings, accessibility) we’ll handle as part of the work.</p>
+  <div class="foot"><span>{{Client}} · Website &amp; growth review</span><span>4</span></div>
+</section>
+
+<!-- 5. WHY IT MATTERS (money framing) + QUICK WINS + COMPETITORS -->
+<section class="page">
+  <div class="eyebrow">Why this matters</div>
+  <h2>{{Small changes, big difference}}</h2>
+  <div class="box" style="margin-bottom:6mm"><p style="margin:0">{{If 1,000 people visit each month and 2 in 100 get in touch, that’s 20 enquiries. Lift that to 4 in 100 and you double your enquiries without spending a dollar more on ads. (Example numbers / your numbers.)}}</p></div>
+  <h3>Quick wins we can do in week one</h3>
+  <ul class="tidy" style="margin-bottom:7mm"><li>{{...}}</li></ul>
+  <h3>How you compare locally</h3>
+  <table class="cmp">
+    <thead><tr><th></th><th>{{Client}}</th><th>{{Competitor 1}}</th><th>{{Competitor 2}}</th></tr></thead>
+    <tbody>
+      <!-- repeat: row --><tr><td>{{Call button on phones}}</td><td class="n">No</td><td class="y">Yes</td><td class="y">Yes</td></tr><!-- /repeat -->
+    </tbody>
+  </table>
+  <div class="foot"><span>{{Client}} · Website &amp; growth review</span><span>5</span></div>
+</section>
+
+<!-- 6. THE PLAN + NEW DESIGNS -->
+<section class="page">
+  <div class="eyebrow">The plan</div>
+  <h2>Three steps to a website that works for you</h2>
+  <div class="steps">
+    <div class="step"><div class="when">{{Weeks 1–2}}</div><h3>Fix</h3><p>{{Quick wins on the current site.}}</p></div>
+    <div class="step"><div class="when">{{Weeks 3–8}}</div><h3>Rebuild</h3><p>{{New design, clear pages for each service, fast on phones.}}</p></div>
+    <div class="step"><div class="when">{{Months 3–6}}</div><h3>Grow</h3><p>{{Google, ads landing pages, reviews, automatic follow-up.}}</p></div>
+  </div>
+  <h3 style="margin-top:10mm">See your new website</h3>
+  <p>{{We’ve designed three directions for your home, {{service}} and quote pages, in three brand styles. Open the live preview to try them on your phone and pick your favourite:}}</p>
+  <p style="font-size:13pt;font-weight:700">{{Preview URL}}</p>
+  <div class="grid3" style="margin-top:4mm">
+    <!-- repeat: preview thumb (screenshots from 06-variations/home/_shots) -->
+    <div><img src="../06-variations/home/_shots/a--1440.png" alt="New home page, layout A" style="width:100%;height:52mm;object-fit:cover;object-position:top;border-radius:2mm;border:1px solid var(--line)"><p class="muted" style="font-size:9pt;margin-top:2mm">{{A – Proof-led}}</p></div>
+    <!-- /repeat -->
+  </div>
+  <div class="foot"><span>{{Client}} · Website &amp; growth review</span><span>6</span></div>
+</section>
+
+<!-- 7. PACKAGES + NEXT STEP -->
+<section class="page">
+  <div class="eyebrow">Options</div>
+  <h2>Choose how far to go</h2>
+  <div class="grid3">
+    <div class="pk"><h3>{{Essentials}}</h3><div class="price">{{$X,XXX}}</div><div class="out">{{Outcome first}}</div><ul><li>{{...}}</li></ul></div>
+    <div class="pk rec"><h3>{{Growth}}</h3><div class="price">{{$X,XXX}}</div><div class="out">{{Outcome first}}</div><ul><li>{{...}}</li></ul></div>
+    <div class="pk"><h3>{{Premium}}</h3><div class="price">{{$X,XXX}}</div><div class="out">{{Outcome first}}</div><ul><li>{{...}}</li></ul></div>
+  </div>
+  <p class="muted" style="font-size:9pt;margin-top:3mm">Prices exclude GST. {{Ongoing care / ads management options if relevant.}}</p>
+  <div class="cta">
+    <h2>{{Next step: a 30-minute walkthrough of your new designs}}</h2>
+    <p style="margin:0">{{Name}} · {{Phone}} · {{Email}}</p>
+  </div>
+  <div class="foot"><span>{{Client}} · Website &amp; growth review</span><span>7</span></div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Redesign Preview</title>
+<script src="_rd/manifest.js"></script>
+<style>
+:root{
+  --ui-bg:#F4F3F0; --ui-panel:#FFFFFF; --ui-ink:#1C1B19; --ui-muted:#6B675F; --ui-line:#E3E0D9; --ui-soft:#ECEAE4;
+  --ui-accent:#2F5BEA; --ui-accent-ink:#fff; --ui-good:#1E7B4D; --ui-bad:#B3261E; --ui-warn:#9A6B00;
+  --ui-stage:#E8E6E0; --ui-shadow:0 1px 2px rgba(20,18,14,.06),0 8px 24px rgba(20,18,14,.08);
+  --r:10px; font-synthesis:none;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ui-bg:#151513; --ui-panel:#1D1D1A; --ui-ink:#EDEBE6; --ui-muted:#A29E95; --ui-line:#2E2D29; --ui-soft:#26251F;
+    --ui-accent:#7A9BFF; --ui-accent-ink:#0B1020; --ui-good:#5CC48E; --ui-bad:#FF8A80; --ui-warn:#E6B44C; --ui-stage:#0E0E0C;
+    --ui-shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ui-bg:#151513; --ui-panel:#1D1D1A; --ui-ink:#EDEBE6; --ui-muted:#A29E95; --ui-line:#2E2D29; --ui-soft:#26251F;
+  --ui-accent:#7A9BFF; --ui-accent-ink:#0B1020; --ui-good:#5CC48E; --ui-bad:#FF8A80; --ui-warn:#E6B44C; --ui-stage:#0E0E0C;
+  --ui-shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ui-bg);color:var(--ui-ink);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--ui-accent)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+:focus-visible{outline:2px solid var(--ui-accent);outline-offset:2px}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:16px;padding:10px 16px;border-bottom:1px solid var(--ui-line);background:var(--ui-panel);position:relative;z-index:5}
+.brandmark{display:flex;flex-direction:column;min-width:0}
+.brandmark b{font-size:15px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brandmark span{font-size:12px;color:var(--ui-muted)}
+.tabs{display:flex;gap:2px;background:var(--ui-soft);padding:3px;border-radius:9px;margin-left:auto}
+.tabs button{border:0;background:none;padding:6px 14px;border-radius:7px;font-weight:600;color:var(--ui-muted)}
+.tabs button[aria-selected="true"]{background:var(--ui-panel);color:var(--ui-ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.top .right{display:flex;gap:8px;margin-left:auto;align-items:center}
+.btn{border:1px solid var(--ui-line);background:var(--ui-panel);padding:7px 12px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--ui-ink)}
+.btn:hover{background:var(--ui-soft)}
+.btn.primary{background:var(--ui-accent);border-color:var(--ui-accent);color:var(--ui-accent-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.badge{font-size:12px;padding:3px 8px;border-radius:99px;background:color-mix(in srgb,var(--ui-warn) 16%,transparent);color:var(--ui-warn);border:0;font-weight:600}
+
+/* toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--ui-line);background:var(--ui-panel)}
+.group{display:flex;align-items:center;gap:8px}
+.group>label,.group>.lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ui-muted)}
+.seg{display:flex;background:var(--ui-soft);padding:3px;border-radius:9px;gap:2px}
+.seg button{border:0;background:none;padding:5px 10px;border-radius:7px;font-weight:600;color:var(--ui-muted);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ui-panel);color:var(--ui-ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.seg button small{font-weight:500;color:var(--ui-muted);margin-left:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--ui-line);background:var(--ui-panel);border-radius:99px;padding:4px 10px 4px 5px;font-weight:600}
+.chip[aria-pressed="true"]{border-color:var(--ui-ink);box-shadow:inset 0 0 0 1px var(--ui-ink)}
+.dots{display:inline-flex}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ui-panel);margin-left:-5px}
+.dots i:first-child{margin-left:0}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--ui-muted);user-select:none}
+.toggle input{accent-color:var(--ui-accent);width:16px;height:16px}
+
+/* main */
+.main{flex:1;display:flex;min-height:0}
+.view{display:none;flex:1;min-height:0}
+.view.on{display:flex}
+.stage{flex:1;min-width:0;background:var(--ui-stage);display:flex;gap:16px;padding:16px;overflow:hidden}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.colhead{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;min-height:22px}
+.colhead .tag{background:var(--ui-ink);color:var(--ui-bg);border-radius:6px;padding:1px 7px;font-size:12px}
+.colhead .sub{color:var(--ui-muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.colhead a{margin-left:auto;font-weight:600;font-size:12px;text-decoration:none}
+.frame{flex:1;min-height:0;position:relative;overflow:hidden;border-radius:12px;background:#fff;box-shadow:var(--ui-shadow);margin:0 auto}
+.frame iframe{border:0;position:absolute;top:0;left:0;transform-origin:0 0;background:#fff}
+.frame.shot{overflow:auto}
+.frame.shot img{display:block;width:100%;height:auto}
+.empty{margin:auto;max-width:520px;text-align:center;color:var(--ui-muted);padding:40px}
+.empty code{background:var(--ui-soft);padding:2px 6px;border-radius:5px}
+
+/* side panel */
+.side{width:340px;flex:none;border-left:1px solid var(--ui-line);background:var(--ui-panel);overflow:auto;padding:18px}
+.side h2{font-size:18px;margin:2px 0 4px;letter-spacing:-.01em}
+.side h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ui-muted);margin:20px 0 8px}
+.side p{margin:0;color:var(--ui-muted)}
+.fix{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--ui-line)}
+.pill{font-size:11px;font-weight:700;padding:1px 6px;border-radius:5px;background:var(--ui-soft);color:var(--ui-ink);flex:none}
+.pill.P1{background:color-mix(in srgb,var(--ui-bad) 16%,transparent);color:var(--ui-bad)}
+.pill.P2{background:color-mix(in srgb,var(--ui-warn) 18%,transparent);color:var(--ui-warn)}
+.issues li{color:var(--ui-warn);margin:2px 0}
+.stars{display:flex;gap:2px}
+.stars button{border:0;background:none;font-size:22px;line-height:1;padding:0 2px;color:var(--ui-line)}
+.stars button.on{color:#E8A317}
+textarea{width:100%;min-height:90px;border:1px solid var(--ui-line);border-radius:8px;padding:8px 10px;background:var(--ui-bg);resize:vertical}
+input[type=text]{width:100%;border:1px solid var(--ui-line);border-radius:8px;padding:8px 10px;background:var(--ui-bg)}
+.pick{width:100%;justify-content:center;margin-top:12px;padding:10px}
+.pick[aria-pressed="true"]{background:var(--ui-good);border-color:var(--ui-good);color:#fff}
+
+/* brands */
+.scroll{flex:1;overflow:auto;padding:20px}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px;max-width:1500px;margin:0 auto}
+.bcard{background:var(--ui-panel);border:1px solid var(--ui-line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--ui-shadow)}
+.blogo{padding:28px 22px;display:flex;align-items:center;justify-content:center;min-height:130px}
+.blogo img{max-height:64px;max-width:85%}
+.bdark{padding:18px 22px;display:flex;align-items:center;gap:18px}
+.bdark img{max-height:40px;max-width:60%}
+.bdark .marks{margin-left:auto;display:flex;gap:10px;align-items:center}
+.bdark .marks img{border-radius:8px}
+.bbody{padding:18px 20px;display:flex;flex-direction:column;gap:12px;flex:1}
+.bbody h2{margin:0;font-size:20px}
+.btag{font-size:15px;font-weight:600}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.sw{border-radius:8px;height:44px;border:1px solid rgba(0,0,0,.08);position:relative}
+.sw span{position:absolute;left:4px;bottom:3px;font:600 9px/1 ui-monospace,monospace;padding:2px 3px;border-radius:3px;background:rgba(255,255,255,.85);color:#111}
+.specimen{border:1px solid var(--ui-line);border-radius:10px;padding:14px}
+.specimen .h{font-size:28px;line-height:1.1;margin-bottom:6px}
+.ctable{width:100%;border-collapse:collapse;font-size:12px}
+.ctable td{padding:3px 0;border-bottom:1px solid var(--ui-line)}
+.ctable td:last-child{text-align:right;font-weight:700}
+.ok{color:var(--ui-good)} .no{color:var(--ui-bad)}
+.kv b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ui-muted);margin-bottom:2px}
+.bfoot{border-top:1px solid var(--ui-line);padding:14px 20px;display:flex;gap:10px;align-items:center}
+details summary{cursor:pointer;font-weight:600;color:var(--ui-muted)}
+
+/* decision */
+.dwrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--ui-panel);border:1px solid var(--ui-line);border-radius:14px;padding:18px 20px}
+.card h2{margin:0 0 12px;font-size:17px}
+.dtable{width:100%;border-collapse:collapse}
+.dtable th,.dtable td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--ui-line)}
+.dtable th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ui-muted)}
+.muted{color:var(--ui-muted)}
+pre{background:var(--ui-soft);border-radius:10px;padding:12px;overflow:auto;font-size:12px;max-height:260px}
+
+dialog{border:1px solid var(--ui-line);border-radius:14px;background:var(--ui-panel);color:var(--ui-ink);max-width:640px;width:calc(100% - 32px);box-shadow:var(--ui-shadow)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+
+@media (max-width: 1100px){ .side{width:290px} }
+@media (max-width: 860px){
+  .main{flex-direction:column}
+  .side{width:auto;border-left:0;border-top:1px solid var(--ui-line);max-height:45vh}
+  .stage{min-height:60vh}
+  .tabs{margin-left:0}
+  .top{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brandmark"><b id="clientName">Redesign preview</b><span id="clientSite"></span></div>
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" aria-selected="true" data-tab="pages">Pages</button>
+    <button role="tab" aria-selected="false" data-tab="brands">Brands</button>
+    <button role="tab" aria-selected="false" data-tab="decision">Decision</button>
+  </div>
+  <div class="right">
+    <button class="badge" id="warnBadge" hidden></button>
+    <button class="btn" id="themeBtn" title="Toggle light/dark" aria-label="Toggle light or dark interface"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>
+    <button class="btn primary" id="exportBtn">Export decision</button>
+  </div>
+</header>
+
+<!-- PAGES VIEW -->
+<div class="toolbar" id="pagesToolbar">
+  <div class="group"><span class="lbl">Page</span><div class="seg" id="pageSeg"></div></div>
+  <div class="group"><span class="lbl">Layout</span><div class="seg" id="layoutSeg"></div></div>
+  <div class="group"><span class="lbl">Brand</span><div class="chips" id="brandChips"></div></div>
+  <div class="group"><span class="lbl">Device</span><div class="seg" id="deviceSeg"></div></div>
+  <label class="toggle"><input type="checkbox" id="showCurrent"> Current site</label>
+  <label class="toggle"><input type="checkbox" id="hideTbc"> Hide “to confirm”</label>
+</div>
+<div class="main">
+  <section class="view on" id="view-pages">
+    <div class="stage" id="stage"></div>
+    <aside class="side" id="side" aria-label="Variation details"></aside>
+  </section>
+
+  <section class="view" id="view-brands"><div class="scroll"><div class="bgrid" id="bgrid"></div></div></section>
+
+  <section class="view" id="view-decision"><div class="scroll"><div class="dwrap" id="dwrap"></div></div></section>
+</div>
+
+<dialog id="warnDialog">
+  <h2 style="margin-top:0">Build warnings</h2>
+  <p class="muted">From the last <code>build-preview.mjs</code> run. Fix these before sharing with the client.</p>
+  <ul id="warnList"></ul>
+  <form method="dialog"><button class="btn">Close</button></form>
+</dialog>
+
+<script>
+(function () {
+  'use strict';
+  var M = window.RD_MANIFEST || { pages: [], brands: [], warnings: [], errors: [] };
+  var DEVICES = [{ id: 'desktop', label: 'Desktop', w: 1440 }, { id: 'tablet', label: 'Tablet', w: 834 }, { id: 'mobile', label: 'Mobile', w: 390 }];
+  var STORE_KEY = 'rd-review:' + (M.client || 'client');
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+
+  // ---------- persisted review state ----------
+  var R = { reviewer: '', ratings: {}, notes: {}, picks: { layouts: {}, brand: null }, overall: '' };
+  try { var saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (saved) R = Object.assign(R, saved); } catch (e) {}
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(R)); } catch (e) {} }
+
+  // ---------- UI state (also in URL hash so a link reopens the same view) ----------
+  var brandsNew = M.brands.filter(function (b) { return b.id !== 'current'; });
+  var S = { tab: 'pages', page: (M.pages[0] || {}).slug, layout: 'a', brand: (brandsNew[0] || M.brands[0] || {}).id, device: 'desktop', current: false, hideTbc: false };
+  function readHash() {
+    try {
+      var h = new URLSearchParams(location.hash.slice(1));
+      ['tab', 'page', 'layout', 'brand', 'device'].forEach(function (k) { if (h.get(k)) S[k] = h.get(k); });
+      S.current = h.get('current') === '1'; S.hideTbc = h.get('tbc') === 'hide';
+    } catch (e) {}
+  }
+  readHash();
+  window.addEventListener('hashchange', function () { readHash(); renderTabs(); renderPages(); });
+  function syncHash() {
+    var p = new URLSearchParams({ tab: S.tab, page: S.page || '', layout: S.layout, brand: S.brand || '', device: S.device });
+    if (S.current) p.set('current', '1'); if (S.hideTbc) p.set('tbc', 'hide');
+    history.replaceState(null, '', '#' + p.toString());
+  }
+
+  var page = function () { return M.pages.filter(function (p) { return p.slug === S.page; })[0] || M.pages[0]; };
+  var brand = function (id) { return M.brands.filter(function (b) { return b.id === (id || S.brand); })[0]; };
+  var device = function () { return DEVICES.filter(function (d) { return d.id === S.device; })[0]; };
+
+  // ---------- header ----------
+  $('#clientName').textContent = (M.client || 'Client') + ' · Redesign preview';
+  document.title = (M.client || 'Client') + ' – Redesign preview';
+  if (M.site) $('#clientSite').innerHTML = 'Current site: <a href="' + esc(M.site) + '" target="_blank" rel="noopener">' + esc(M.site.replace(/^https?:\/\//, '')) + '</a>';
+  var probs = (M.errors || []).concat(M.warnings || []);
+  if (probs.length) {
+    var b = $('#warnBadge'); b.hidden = false; b.textContent = probs.length + ' build warning' + (probs.length > 1 ? 's' : '');
+    $('#warnList').innerHTML = probs.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('');
+    b.onclick = function () { $('#warnDialog').showModal(); };
+  }
+  $('#themeBtn').onclick = function () {
+    var r = document.documentElement, cur = r.getAttribute('data-theme');
+    var dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    r.setAttribute('data-theme', dark ? 'light' : 'dark');
+  };
+
+  // ---------- tabs ----------
+  document.querySelectorAll('[data-tab]').forEach(function (t) { t.onclick = function () { S.tab = t.getAttribute('data-tab'); renderTabs(); syncHash(); }; });
+  function renderTabs() {
+    document.querySelectorAll('[data-tab]').forEach(function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-tab') === S.tab)); });
+    ['pages', 'brands', 'decision'].forEach(function (v) { $('#view-' + v).classList.toggle('on', v === S.tab); });
+    $('#pagesToolbar').style.display = S.tab === 'pages' ? '' : 'none';
+    if (S.tab === 'brands') renderBrands();
+    if (S.tab === 'decision') renderDecision();
+    if (S.tab === 'pages') requestAnimationFrame(layoutFrames);
+  }
+
+  // ---------- toolbar ----------
+  function seg(el, items, current, onPick) {
+    el.innerHTML = '';
+    items.forEach(function (it) {
+      var bt = document.createElement('button');
+      bt.type = 'button'; bt.innerHTML = it.html || esc(it.label); bt.title = it.title || '';
+      bt.setAttribute('aria-pressed', String(it.id === current));
+      bt.onclick = function () { onPick(it.id); };
+      el.appendChild(bt);
+    });
+  }
+  function dotsFor(b) {
+    var c = b.colors || {};
+    return '<span class="dots" aria-hidden="true"><i style="background:' + esc(c.primary) + '"></i><i style="background:' + esc(c.accent) + '"></i><i style="background:' + esc(c.dark) + '"></i></span>';
+  }
+  function renderToolbar() {
+    var p = page();
+    seg($('#pageSeg'), M.pages.map(function (x) { return { id: x.slug, label: x.label }; }), S.page, function (id) { S.page = id; if (!variant()) S.layout = 'a'; renderPages(); });
+    var lay = (p ? p.variants : []).map(function (v) { return { id: v.id, html: esc(v.id.toUpperCase()) + '<small>' + esc(v.label) + '</small>', title: v.strategy }; });
+    if (lay.length > 1) lay.push({ id: 'compare', html: 'Compare all', title: 'Show every layout side by side (key C)' });
+    seg($('#layoutSeg'), lay, S.layout, function (id) { S.layout = id; renderPages(); });
+    var chips = $('#brandChips'); chips.innerHTML = '';
+    M.brands.forEach(function (b) {
+      var bt = document.createElement('button');
+      bt.type = 'button'; bt.className = 'chip'; bt.innerHTML = dotsFor(b) + esc(b.name || b.id);
+      bt.setAttribute('aria-pressed', String(b.id === S.brand)); bt.title = b.concept || '';
+      bt.onclick = function () { S.brand = b.id; postBrand(); renderToolbar(); renderSide(); syncHash(); };
+      chips.appendChild(bt);
+    });
+    seg($('#deviceSeg'), DEVICES.map(function (d) { return { id: d.id, label: d.label, title: d.w + 'px wide' }; }), S.device, function (id) { S.device = id; renderPages(); });
+    $('#showCurrent').checked = S.current; $('#hideTbc').checked = S.hideTbc;
+  }
+  $('#showCurrent').onchange = function (e) { S.current = e.target.checked; renderPages(); };
+  $('#hideTbc').onchange = function (e) { S.hideTbc = e.target.checked; postAll({ type: 'rd-tbc', hide: S.hideTbc }); syncHash(); };
+
+  function variant(id) { var p = page(); return p && p.variants.filter(function (v) { return v.id === (id || S.layout); })[0]; }
+
+  // ---------- stage ----------
+  function srcFor(v) { return v.file + '?brand=' + encodeURIComponent(S.brand || '') + (S.hideTbc ? '&tbc=hide' : ''); }
+  function postAll(msg) { document.querySelectorAll('#stage iframe').forEach(function (f) { try { f.contentWindow.postMessage(msg, '*'); } catch (e) {} }); }
+  function postBrand() {
+    postAll({ type: 'rd-brand', id: S.brand });
+    document.querySelectorAll('#stage [data-open]').forEach(function (a) { a.href = srcFor(variant(a.getAttribute('data-open'))); });
+  }
+  function renderPages() {
+    renderToolbar(); syncHash();
+    var stage = $('#stage'); stage.innerHTML = '';
+    var p = page();
+    if (!p) { stage.innerHTML = '<div class="empty"><h2>No pages yet</h2><p>Create variations in <code>06-variations/&lt;page&gt;/a.html</code>, then run <code>build-preview.mjs</code>.</p></div>'; renderSide(); return; }
+    if (!p.variants.length) { stage.innerHTML = '<div class="empty"><h2>' + esc(p.label) + '</h2><p>No variations built for this page yet.</p></div>'; renderSide(); return; }
+    var cols = S.layout === 'compare' ? p.variants.slice() : [variant() || p.variants[0]];
+    if (S.current && p.current) cols.unshift({ current: true });
+    cols.forEach(function (v) {
+      var col = document.createElement('div'); col.className = 'col';
+      if (v.current) {
+        var shot = S.device === 'mobile' ? p.current.mobile : p.current.desktop;
+        col.innerHTML = '<div class="colhead"><span class="tag">Now</span><span class="sub">Current site</span>' + (p.current.url ? '<a href="' + esc(p.current.url) + '" target="_blank" rel="noopener">Open ↗</a>' : '') + '</div>' +
+          '<div class="frame shot" data-w="' + device().w + '">' + (shot ? '<img src="' + esc(shot) + '" alt="Screenshot of the current ' + esc(p.label) + ' page">' : '<div class="empty">No screenshot</div>') + '</div>';
+      } else {
+        col.innerHTML = '<div class="colhead"><span class="tag">' + esc(v.id.toUpperCase()) + '</span><span class="sub">' + esc(v.label) + '</span><a data-open="' + esc(v.id) + '" href="' + esc(srcFor(v)) + '" target="_blank" rel="noopener">Open ↗</a></div>' +
+          '<div class="frame" data-w="' + device().w + '"><iframe title="' + esc(p.label + ' – layout ' + v.id.toUpperCase()) + '" src="' + esc(srcFor(v)) + '" loading="lazy"></iframe></div>';
+        var fr = col.querySelector('iframe');
+        fr.addEventListener('load', function () { try { fr.contentWindow.postMessage({ type: 'rd-brand', id: S.brand }, '*'); } catch (e) {} });
+      }
+      stage.appendChild(col);
+    });
+    layoutFrames(); renderSide();
+  }
+  function layoutFrames() {
+    document.querySelectorAll('#stage .frame').forEach(function (fr) {
+      var w = +fr.getAttribute('data-w'); var col = fr.parentElement;
+      var avail = col.clientWidth; var scale = Math.min(1, avail / w);
+      fr.style.width = Math.floor(w * scale) + 'px';
+      var ifr = fr.querySelector('iframe');
+      if (ifr) { ifr.style.width = w + 'px'; ifr.style.height = Math.ceil(fr.clientHeight / scale) + 'px'; ifr.style.transform = 'scale(' + scale + ')'; }
+    });
+  }
+  window.addEventListener('resize', layoutFrames);
+  if (window.ResizeObserver) new ResizeObserver(layoutFrames).observe($('#stage'));
+
+  // ---------- side panel ----------
+  function starsHtml(key) {
+    var v = R.ratings[key] || 0, h = '<div class="stars" role="radiogroup" aria-label="Rating">';
+    for (var i = 1; i <= 5; i++) h += '<button type="button" role="radio" aria-checked="' + (v === i) + '" aria-label="' + i + ' star' + (i > 1 ? 's' : '') + '" class="' + (i <= v ? 'on' : '') + '" data-rate="' + esc(key) + '" data-val="' + i + '">★</button>';
+    return h + '</div>';
+  }
+  function bindReview(root) {
+    root.querySelectorAll('[data-rate]').forEach(function (b) { b.onclick = function () { var k = b.getAttribute('data-rate'), v = +b.getAttribute('data-val'); R.ratings[k] = R.ratings[k] === v ? 0 : v; save(); rerenderCurrent(); }; });
+    root.querySelectorAll('[data-note]').forEach(function (t) { t.oninput = function () { R.notes[t.getAttribute('data-note')] = t.value; save(); }; });
+  }
+  function rerenderCurrent() { if (S.tab === 'pages') renderSide(); if (S.tab === 'brands') renderBrands(); if (S.tab === 'decision') renderDecision(); }
+  function renderSide() {
+    var side = $('#side'), p = page();
+    if (!p || !p.variants.length) { side.innerHTML = '<p class="muted">Nothing to review yet.</p>'; return; }
+    var list = S.layout === 'compare' ? p.variants : [variant() || p.variants[0]];
+    var html = '';
+    list.forEach(function (v, i) {
+      var key = p.slug + ':' + v.id, picked = R.picks.layouts[p.slug] === v.id;
+      html += (i ? '<hr style="border:0;border-top:1px solid var(--ui-line);margin:22px 0">' : '') +
+        '<div class="muted" style="font-weight:700;font-size:12px">' + esc(p.label) + ' · Layout ' + esc(v.id.toUpperCase()) + '</div>' +
+        '<h2>' + esc(v.label) + '</h2><p>' + esc(v.strategy || '') + '</p>' +
+        (v.fixes && v.fixes.length ? '<h3>Fixes from the audit</h3>' + v.fixes.map(function (f) { return '<div class="fix"><span class="pill ' + esc(f.priority || '') + '">' + esc(f.id) + '</span><span>' + esc(f.title || '') + '</span></div>'; }).join('') : '') +
+        (v.tbc ? '<p style="margin-top:10px" class="muted">' + v.tbc + ' fact(s) marked “to confirm” with the client.</p>' : '') +
+        (v.issues && v.issues.length ? '<h3>Build warnings</h3><ul class="issues">' + v.issues.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+        '<h3>Your rating</h3>' + starsHtml(key) +
+        '<h3>Notes</h3><textarea data-note="' + esc(key) + '" placeholder="What works, what to change…">' + esc(R.notes[key] || '') + '</textarea>' +
+        '<button type="button" class="btn pick" data-pick="' + esc(v.id) + '" aria-pressed="' + picked + '">' + (picked ? '✓ Chosen for ' + esc(p.label) : 'Choose this layout for ' + esc(p.label)) + '</button>';
+    });
+    var b = brand();
+    if (b) html += '<hr style="border:0;border-top:1px solid var(--ui-line);margin:22px 0"><div class="muted" style="font-weight:700;font-size:12px">Brand</div><h2>' + esc(b.name) + '</h2><p>' + esc(b.tagline || b.concept || '') + '</p>' + starsHtml('brand:' + b.id) +
+      '<button type="button" class="btn pick" data-pick-brand="' + esc(b.id) + '" aria-pressed="' + (R.picks.brand === b.id) + '">' + (R.picks.brand === b.id ? '✓ Chosen brand' : 'Choose this brand') + '</button>';
+    side.innerHTML = html;
+    bindReview(side); bindPicks(side);
+  }
+  function bindPicks(root) {
+    root.querySelectorAll('[data-pick]').forEach(function (bt) { bt.onclick = function () { var p = page(), id = bt.getAttribute('data-pick'); R.picks.layouts[p.slug] = R.picks.layouts[p.slug] === id ? null : id; save(); rerenderCurrent(); }; });
+    root.querySelectorAll('[data-pick-brand]').forEach(function (bt) { bt.onclick = function () { var id = bt.getAttribute('data-pick-brand'); R.picks.brand = R.picks.brand === id ? null : id; save(); rerenderCurrent(); }; });
+  }
+
+  // ---------- brands view ----------
+  var fontsLoaded = {};
+  function loadFont(name, isSystem) {
+    if (!name || isSystem || fontsLoaded[name]) return; fontsLoaded[name] = 1;
+    var l = document.createElement('link'); l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(name).replace(/%20/g, '+') + ':wght@400;600;700;800&display=swap';
+    document.head.appendChild(l);
+  }
+  var TOKENS = ['primary', 'accent', 'dark', 'bg', 'surface', 'text', 'muted', 'border', 'onPrimary', 'onAccent', 'onDark'];
+  function renderBrands() {
+    var g = $('#bgrid');
+    if (!M.brands.length) { g.innerHTML = '<div class="empty"><h2>No brand directions yet</h2><p>Write <code>05-brand/brands.json</code> and rebuild the preview.</p></div>'; return; }
+    g.innerHTML = M.brands.map(function (b) {
+      var c = b.colors || {}, f = b.fonts || {}, L = b.logo || {};
+      loadFont(f.heading, f.headingIsSystem); loadFont(f.body, f.bodyIsSystem);
+      var hf = f.heading ? '"' + f.heading + '",' + (f.headingFallback || 'system-ui,sans-serif') : 'inherit';
+      var bf = f.body ? '"' + f.body + '",' + (f.bodyFallback || 'system-ui,sans-serif') : 'inherit';
+      var img = function (src, alt, extra) { return src ? '<img src="_rd/' + esc(src) + '" alt="' + esc(alt) + '"' + (extra || '') + '>' : '<span class="muted">No logo</span>'; };
+      var voice = b.voice && b.voice.adjectives ? b.voice.adjectives.join(' · ') : '';
+      var picked = R.picks.brand === b.id;
+      return '<article class="bcard">' +
+        '<div class="blogo" style="background:' + esc(c.bg) + '">' + img(L.primary, (b.name || '') + ' primary logo') + '</div>' +
+        '<div class="bdark" style="background:' + esc(c.dark) + ';color:' + esc(c.onDark) + '">' + img(L.onDark, (b.name || '') + ' logo on dark') +
+        '<div class="marks">' + img(L.mark, 'mark 48px', ' width="48" height="48"') + img(L.mark, 'mark 24px', ' width="24" height="24"') + '</div></div>' +
+        '<div class="bbody">' +
+        '<div><div class="muted" style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em">' + esc(b.id === 'current' ? 'Existing' : 'Direction ' + b.id.toUpperCase()) + '</div><h2>' + esc(b.name) + '</h2></div>' +
+        (b.tagline ? '<div class="btag">“' + esc(b.tagline) + '”</div>' : '') +
+        (b.concept ? '<p style="margin:0">' + esc(b.concept) + '</p>' : '') +
+        '<div class="swatches">' + TOKENS.slice(0, 6).map(function (k) { return '<div class="sw" style="background:' + esc(c[k]) + '" title="' + k + ' ' + esc(c[k]) + '"><span>' + esc(c[k] || '') + '</span></div>'; }).join('') + '</div>' +
+        '<div class="specimen" style="background:' + esc(c.bg) + ';color:' + esc(c.text) + '"><div class="h" style="font-family:' + esc(hf) + ';font-weight:' + esc(f.headingWeight || 700) + ';color:' + esc(c.text) + '">' + esc((b.voice && b.voice.exampleHeadline) || 'Hot water back on today') + '</div>' +
+        '<div style="font-family:' + esc(bf) + ';color:' + esc(c.muted) + '">' + esc((f.heading || 'System') + ' / ' + (f.body || 'System')) + ' — body copy reads like this, comfortable at 16–18px.</div>' +
+        '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><span style="background:' + esc(c.accent) + ';color:' + esc(c.onAccent) + ';padding:9px 14px;border-radius:' + esc(b.radius || '8px') + ';font-weight:700;font-family:' + esc(bf) + '">Get a quote</span>' +
+        '<span style="background:' + esc(c.primary) + ';color:' + esc(c.onPrimary) + ';padding:9px 14px;border-radius:' + esc(b.radius || '8px') + ';font-weight:700;font-family:' + esc(bf) + '">Call now</span></div></div>' +
+        (voice ? '<div class="kv"><b>Voice</b>' + esc(voice) + (b.voice.do ? '<br><span class="muted">Do: ' + esc(b.voice.do) + '</span>' : '') + (b.voice.dont ? '<br><span class="muted">Don’t: ' + esc(b.voice.dont) + '</span>' : '') + '</div>' : '') +
+        (b.imagery ? '<div class="kv"><b>Imagery</b>' + esc(b.imagery) + '</div>' : '') +
+        '<details><summary>Contrast checks</summary><table class="ctable">' + (b.contrast || []).map(function (x) { var pass = x.ratio !== null && x.ratio >= x.min; return '<tr><td>' + esc(x.fg) + ' on ' + esc(x.bg) + '</td><td class="' + (pass ? 'ok' : 'no') + '">' + (x.ratio === null ? '–' : x.ratio + ':1') + (pass ? ' ✓' : ' ✕') + '</td></tr>'; }).join('') + '</table></details>' +
+        (b.rationale ? '<details><summary>Why this direction</summary><p>' + esc(b.rationale) + '</p></details>' : '') +
+        '<textarea data-note="brand:' + esc(b.id) + '" placeholder="Notes on this direction…">' + esc(R.notes['brand:' + b.id] || '') + '</textarea>' +
+        '</div><div class="bfoot">' + starsHtml('brand:' + b.id) + '<button type="button" class="btn" style="margin-left:auto" data-try="' + esc(b.id) + '">Try on pages</button>' +
+        '<button type="button" class="btn ' + (picked ? 'primary' : '') + '" data-pick-brand="' + esc(b.id) + '" aria-pressed="' + picked + '">' + (picked ? '✓ Chosen' : 'Choose') + '</button></div></article>';
+    }).join('');
+    bindReview(g); bindPicks(g);
+    g.querySelectorAll('[data-try]').forEach(function (bt) { bt.onclick = function () { S.brand = bt.getAttribute('data-try'); S.tab = 'pages'; renderTabs(); renderPages(); }; });
+  }
+
+  // ---------- decision view ----------
+  function decision() {
+    return {
+      client: M.client, site: M.site, reviewer: R.reviewer, exportedAt: new Date().toISOString(), previewBuiltAt: M.builtAt,
+      picks: {
+        brand: R.picks.brand ? { id: R.picks.brand, name: (brand(R.picks.brand) || {}).name, rating: R.ratings['brand:' + R.picks.brand] || null, notes: R.notes['brand:' + R.picks.brand] || '' } : null,
+        pages: M.pages.map(function (p) {
+          var id = R.picks.layouts[p.slug], v = id && p.variants.filter(function (x) { return x.id === id; })[0];
+          return { page: p.slug, label: p.label, layout: id || null, layoutLabel: v ? v.label : null, rating: id ? R.ratings[p.slug + ':' + id] || null : null, notes: id ? R.notes[p.slug + ':' + id] || '' : '' };
+        }),
+      },
+      allRatings: R.ratings, allNotes: R.notes, overallNotes: R.overall,
+    };
+  }
+  function renderDecision() {
+    var d = decision(), w = $('#dwrap');
+    var rows = d.picks.pages.map(function (p) { return '<tr><td><b>' + esc(p.label) + '</b></td><td>' + (p.layout ? esc(p.layout.toUpperCase() + ' – ' + p.layoutLabel) : '<span class="muted">Not chosen</span>') + '</td><td>' + (p.rating ? '★'.repeat(p.rating) : '') + '</td><td class="muted">' + esc(p.notes) + '</td></tr>'; }).join('');
+    var maxV = Math.max.apply(null, [0].concat(M.pages.map(function (p) { return p.variants.length; })));
+    var matrix = M.pages.map(function (p) { var cells = p.variants.map(function (v) { var r = R.ratings[p.slug + ':' + v.id]; return '<td>' + esc(v.id.toUpperCase()) + ' ' + (r ? '★'.repeat(r) : '<span class="muted">–</span>') + '</td>'; }); while (cells.length < maxV) cells.push('<td></td>'); return '<tr><td><b>' + esc(p.label) + '</b></td>' + cells.join('') + '</tr>'; }).join('');
+    w.innerHTML =
+      '<div class="card"><h2>Who is reviewing?</h2><input type="text" id="reviewer" placeholder="Your name (e.g. owner, office manager)" value="' + esc(R.reviewer) + '"></div>' +
+      '<div class="card"><h2>Your picks</h2><table class="dtable"><thead><tr><th>Page</th><th>Layout</th><th>Rating</th><th>Notes</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<p style="margin-top:12px"><b>Brand:</b> ' + (d.picks.brand ? esc(d.picks.brand.name) + (d.picks.brand.rating ? ' ' + '★'.repeat(d.picks.brand.rating) : '') : '<span class="muted">Not chosen – pick one in the Brands tab</span>') + '</p></div>' +
+      '<div class="card"><h2>All ratings</h2><table class="dtable"><tbody>' + matrix + '</tbody></table></div>' +
+      '<div class="card"><h2>Anything else?</h2><textarea id="overall" placeholder="Mix-and-match requests, e.g. “Layout B hero with layout A reviews section”">' + esc(R.overall) + '</textarea></div>' +
+      '<div class="card"><h2>Send it back</h2><p class="muted" style="margin-top:0">Download the decision file and send it to your web team (they drop it into the project as <code>redesign/decision.json</code>).</p>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="dl">Download decision.json</button><button class="btn" id="cp">Copy to clipboard</button><button class="btn" id="reset" style="margin-left:auto">Clear my review</button></div>' +
+      '<details style="margin-top:12px"><summary>Preview JSON</summary><pre id="json"></pre></details></div>';
+    $('#json').textContent = JSON.stringify(d, null, 2);
+    $('#reviewer').oninput = function (e) { R.reviewer = e.target.value; save(); $('#json').textContent = JSON.stringify(decision(), null, 2); };
+    $('#overall').oninput = function (e) { R.overall = e.target.value; save(); $('#json').textContent = JSON.stringify(decision(), null, 2); };
+    $('#dl').onclick = download;
+    $('#cp').onclick = function () { var t = JSON.stringify(decision(), null, 2); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $('#cp').textContent = 'Copied ✓'; }, function () { $('#json').parentElement.open = true; }); };
+    $('#reset').onclick = function () { if (confirm('Clear all your ratings, notes and picks on this device?')) { R = { reviewer: '', ratings: {}, notes: {}, picks: { layouts: {}, brand: null }, overall: '' }; save(); renderDecision(); } };
+  }
+  function download() {
+    var blob = new Blob([JSON.stringify(decision(), null, 2)], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'decision.json'; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  $('#exportBtn').onclick = function () { S.tab = 'decision'; renderTabs(); syncHash(); };
+
+  // ---------- keyboard ----------
+  document.addEventListener('keydown', function (e) {
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey || S.tab !== 'pages') return;
+    var p = page(); if (!p) return;
+    var k = e.key.toLowerCase();
+    if (/^[1-9]$/.test(k) && p.variants[+k - 1]) { S.layout = p.variants[+k - 1].id; renderPages(); }
+    else if (k === 'c') { S.layout = S.layout === 'compare' ? (p.variants[0] || {}).id : 'compare'; renderPages(); }
+    else if (k === 'b' && M.brands.length) { var i = M.brands.map(function (x) { return x.id; }).indexOf(S.brand); S.brand = M.brands[(i + 1) % M.brands.length].id; postBrand(); renderToolbar(); renderSide(); syncHash(); }
+    else if (k === 'd' || k === 't' || k === 'm') { S.device = { d: 'desktop', t: 'tablet', m: 'mobile' }[k]; renderPages(); }
+  });
+
+  renderTabs(); renderPages();
+})();
+</script>
+</body>
+</html>
