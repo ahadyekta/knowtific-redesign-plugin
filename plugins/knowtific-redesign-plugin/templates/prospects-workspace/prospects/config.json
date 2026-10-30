@@ -1,0 +1,25 @@
+{
+  "depth": "lite",
+  "maxPages": 12,
+  "minScoreToSkip": 8,
+  "candidatesPerTarget": 5,
+  "sender": {
+    "name": "Ahad Nemati",
+    "business": "Knowtific",
+    "email": "",
+    "phone": "",
+    "website": "https://knowtific.com.au",
+    "bookingUrl": ""
+  },
+  "cloudflareProject": "knowtific-reviews",
+  "cloudflareBranch": "main",
+  "publicBaseUrl": "",
+  "_help": {
+    "depth": "audit = report only | lite = 1 brand + 1 home page concept | full = 3 brands x 3 key pages x 3 layouts",
+    "maxPages": "pages crawled per prospect",
+    "minScoreToSkip": "skip prospects whose overall audit score is at or above this",
+    "sender": "shown in the report and email; empty fields are left out",
+    "cloudflareProject": "Cloudflare Pages project the whole prospects/_site folder deploys to",
+    "publicBaseUrl": "optional custom domain for report links, e.g. https://reviews.knowtific.com.au (default https://<cloudflareProject>.pages.dev)"
+  }
+}

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Screenshot a variation file (or any URL) at several widths so you can check the design.
 // Usage: node shoot.mjs redesign/06-variations/home/a.html --out redesign/06-variations/home/_shots
-//        [--widths 390,834,1440] [--brand b] [--fold] [--full]
-// Default: full-page shots at 390 and 1440. --fold adds viewport-only shots.
+//        [--widths 390,834,1440] [--brand b] [--fold] [--name prefix]
+// Default: full-page shots at 390 and 1440. --fold adds viewport-only shots (<name>--<w>-fold.png).
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -31,7 +31,7 @@ else {
 if (args.brand) url.searchParams.set('brand', args.brand);
 
 const browser = await launchChromium();
-const base = path.basename(target).replace(/\.html?$/, '') + (args.brand ? `--${args.brand}` : '');
+const base = (args.name || path.basename(target).replace(/\.html?$/, '')) + (args.brand ? `--${args.brand}` : '');
 const issues = [];
 for (const w of widths) {
   const mobile = w < 600;
@@ -50,8 +50,8 @@ for (const w of widths) {
     brand: document.documentElement.getAttribute('data-brand'),
   })).catch(() => ({}));
   const file = path.join(OUT, `${base}--${w}.png`);
-  await page.screenshot({ path: file, fullPage: args.fold ? false : true, timeout: 60000 }).catch(async () => page.screenshot({ path: file }));
-  if (args.fold) await page.screenshot({ path: path.join(OUT, `${base}--${w}-fold.png`) });
+  await page.screenshot({ path: file, fullPage: true, timeout: 60000 }).catch(async () => page.screenshot({ path: file }));
+  if (args.fold) { await page.evaluate(() => scrollTo(0, 0)).catch(() => {}); await page.screenshot({ path: path.join(OUT, `${base}--${w}-fold.png`) }); }
   console.log(`  ${w}px -> ${path.relative(process.cwd(), file)}  (height ${info.height}px, brand ${info.brand || '-'})`);
   if (info.overflow) issues.push(`${w}px: horizontal overflow (page is ${info.scrollWidth}px wide)`);
   if (mobile && !info.ctaInFold) issues.push(`${w}px: no filled CTA button visible in the first screen`);

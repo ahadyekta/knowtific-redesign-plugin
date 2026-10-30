@@ -1,0 +1,14 @@
+node_modules/
+logs/
+.env
+prospects/.last-run
+
+# Rebuildable copies (the published copy lives in prospects/_site/, the viewer is rebuilt by
+# build-preview.mjs). Ignoring them roughly halves the repo size.
+prospects/*/redesign/deploy/
+prospects/*/redesign/preview/
+
+# Screenshots stay committed by default: they are the "before" footage for videos.
+# If the repo gets too big, uncomment to drop the tallest ones (full-page crawl shots):
+# prospects/*/redesign/02-audit/crawl/shots/*--desktop.png
+# prospects/*/redesign/02-audit/crawl/shots/*--mobile.png

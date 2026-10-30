@@ -19,6 +19,9 @@ const warn = (scope, msg) => warnings.push({ scope, msg });
 const fail = (scope, msg) => errors.push({ scope, msg });
 
 const state = readJson(path.join(RD, 'state.json'), {});
+// prospect concepts: 1 layout per page in "lite" depth, stricter concept rules, slimmer viewer
+const CONCEPT = state.mode === 'prospect';
+const LAYOUTS = +state.layoutsPerPage || (CONCEPT && state.depth === 'lite' ? 1 : 3);
 const brandsFile = readJson(path.join(RD, '05-brand', 'brands.json'), null);
 const brandCurrent = readJson(path.join(RD, '02-audit', 'crawl', 'brand-current.json'), null);
 const crawlPages = readJson(path.join(RD, '02-audit', 'crawl', 'pages.json'), []);
@@ -46,13 +49,19 @@ if (brandCurrent && brandsFile?.includeCurrent !== false) {
     logo: logoPath ? { primary: logoPath, mark: logoPath, onDark: logoPath } : {}, auto: true,
   });
 }
+// a direction that keeps the client's logo ("logo": {"useCurrent": true}) borrows the crawled one
+for (const b of brands) {
+  if (b.id === 'current' || !b.logo?.useCurrent) continue;
+  if (currentLogo) { const p = 'logos/current-' + currentLogo; b.logo = { primary: p, mark: p, onDark: p, useCurrent: true }; }
+  else warn(`brand ${b.id}`, 'logo.useCurrent is set but no current logo was saved by the crawl');
+}
 const brandReport = brands.map((b) => {
   const issues = checkBrandContrast(b);
   // the existing brand's contrast problems are audit findings, not build problems
   if (b.id === 'current') issues.forEach((i) => infos.push(`current brand: ${i.msg}`));
   else for (const i of issues) (i.level === 'error' ? fail : warn)(`brand ${b.id}`, i.msg);
   const pairs = CONTRAST_PAIRS.map(([fg, bg, min]) => ({ fg, bg, min, ratio: contrast(b.colors?.[fg], b.colors?.[bg]) }));
-  if (b.id !== 'current') {
+  if (b.id !== 'current' && !b.logo?.useCurrent) {
     for (const k of ['primary', 'mark', 'onDark']) {
       const p = b.logo?.[k];
       if (!p) warn(`brand ${b.id}`, `logo.${k} not set`);
@@ -105,7 +114,20 @@ function lintVariation(scope, html) {
   if (hex.length > 3) warn(scope, `${hex.length} hard-coded hex colours (${[...new Set(hex)].slice(0, 5).join(', ')}) - use brand tokens so brand switching works`);
   if (/<img[^>]+src=["']https?:\/\//i.test(html)) warn(scope, 'hotlinked external image(s) - use _rd/img or placeholders');
   if (!meta(html, 'rd:label')) warn(scope, 'missing <meta name="rd:label">');
+  if (CONCEPT) lintConcept(scope, html);
   return { tbc: (html.match(/class=["'][^"']*\btbc\b/g) || []).length };
+}
+// prospect concepts are shown to a business that never asked for them: they must say so,
+// stay out of search, collect nothing and never dial or email the real business
+function lintConcept(scope, html) {
+  if (!/class=["'][^"']*\brd-concept-banner\b/.test(html) || !/Design concept by Knowtific/i.test(html)) fail(scope, 'missing the fixed "Design concept by Knowtific - not a live website" banner (.rd-concept-banner)');
+  if (!/<meta\s+name=["']robots["']\s+content=["'][^"']*noindex/i.test(html)) fail(scope, 'missing <meta name="robots" content="noindex">');
+  if (/href=["']\s*(tel|mailto|sms):/i.test(html)) fail(scope, 'clickable tel:/mailto:/sms: link - concept phone numbers and emails must be plain text');
+  if (/<form\b[^>]*\saction=/i.test(html)) fail(scope, '<form> has an action - concept forms must not submit anywhere');
+  const submits = html.match(/<(button|input)\b[^>]*type=["']submit["'][^>]*>/gi) || [];
+  if (submits.some((s) => !/\sdisabled\b/i.test(s))) fail(scope, 'enabled submit button - concept forms are visual only (add disabled)');
+  const forms = html.match(/<form\b[\s\S]*?<\/form>/gi) || [];
+  if (forms.some((f) => /<button\b(?![^>]*\s(type|disabled)\b)[^>]*>/i.test(f))) fail(scope, '<button> inside a form without type= defaults to submit - set type="button" or disabled');
 }
 
 const manifestPages = [];
@@ -115,7 +137,7 @@ for (const kp of keyPages) {
   if (!fs.existsSync(dir)) { warn(`page ${kp.slug}`, `no folder 06-variations/${kp.slug}`); manifestPages.push(pageOut); continue; }
   copyDir(dir, path.join(OUT, 'pages', kp.slug), (p, ent) => !ent.name.startsWith('_'));
   const files = fs.readdirSync(dir).filter((f) => /^[a-z]\.html$/.test(f)).sort();
-  if (files.length < 3) warn(`page ${kp.slug}`, `${files.length} variation(s) found (expected a, b, c)`);
+  if (files.length < LAYOUTS) warn(`page ${kp.slug}`, `${files.length} variation(s) found (expected ${LAYOUTS})`);
   for (const f of files) {
     const html = fs.readFileSync(path.join(dir, f), 'utf8');
     const id = f[0];
@@ -146,6 +168,7 @@ for (const kp of keyPages) {
 const scorecard = readJson(path.join(RD, '02-audit', 'scorecard.json'), null);
 const manifest = {
   client: state.client || brandsFile?.client || path.basename(path.dirname(RD)), site: state.site || null, builtAt: new Date().toISOString(),
+  mode: CONCEPT ? 'prospect' : 'client',
   pages: manifestPages, brands: brandReport, scorecard,
   warnings: warnings.map((w) => `${w.scope}: ${w.msg}`), errors: errors.map((w) => `${w.scope}: ${w.msg}`), info: infos,
 };

@@ -7,12 +7,12 @@
 //   node crawl.mjs https://example.com.au --out redesign/02-audit/crawl [--max 40]
 //        [--include "/services/*"] [--exclude "/blog/*"] [--urls urls.txt]
 //        [--concurrency 3] [--no-shots] [--no-axe] [--no-images] [--max-images 60]
-//        [--no-linkcheck] [--timeout 30000]
+//        [--no-linkcheck] [--timeout 30000] [--priority]  (key pages like contact/quote/services first)
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseArgs, asList, slugFromUrl, ensureDir, writeJson, launchChromium, parseCssColor, rgbToHex, contrast } from './lib.mjs';
 
-const args = parseArgs(process.argv.slice(2), ['no-shots', 'no-axe', 'no-images', 'no-linkcheck']);
+const args = parseArgs(process.argv.slice(2), ['no-shots', 'no-axe', 'no-images', 'no-linkcheck', 'priority']);
 const start = args._[0];
 if (!start) {
   console.error('Usage: node crawl.mjs <url> --out <dir> [--max 40] [--include pattern] [--exclude pattern] [--urls file]');
@@ -246,12 +246,38 @@ async function settle(page) {
   for (const sel of ['#onetrust-accept-btn-handler', 'button:has-text("Accept all")', 'button:has-text("Accept")', 'button:has-text("I agree")', '.cky-btn-accept', '#cn-accept-cookie', '.cmplz-accept']) {
     try { const b = page.locator(sel).first(); if (await b.isVisible({ timeout: 300 })) { await b.click({ timeout: 1000 }); break; } } catch {}
   }
-  // trigger lazy loading
+  // Trigger lazy loading and make full-page screenshots match what a visitor sees after scrolling.
+  // Two things otherwise leave blank bands: scroll-reveal sections (still transparent when the
+  // shot is taken) and composited layers (transform / will-change), which Chromium only paints
+  // a few thousand pixels around the viewport.
   await page.evaluate(async () => {
+    const hidden = [...document.querySelectorAll('body *')].slice(0, 6000)
+      .map((el) => [el, +getComputedStyle(el).opacity, el.getAttribute('class'), el.getAttribute('style')]).filter(([, o]) => o < 0.99);
     const h = Math.min(document.documentElement.scrollHeight, 30000);
-    for (let y = 0; y < h; y += Math.round(innerHeight * 0.8)) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 120)); }
-    scrollTo(0, 0);
+    const check = () => {
+      for (const [el, o, c, s] of hidden) {
+        const r = el.getBoundingClientRect();
+        const changed = +getComputedStyle(el).opacity > o + 0.02 || el.getAttribute('class') !== c || el.getAttribute('style') !== s;
+        if (r.bottom > 0 && r.top < innerHeight && changed) el.setAttribute('data-rd-revealed', '');
+      }
+    };
+    for (let y = 0; y < h; y += Math.round(innerHeight * 0.6)) { scrollTo({ top: y, behavior: 'instant' }); await new Promise((r) => setTimeout(r, 150)); check(); }
+    scrollTo({ top: h, behavior: 'instant' }); await new Promise((r) => setTimeout(r, 400)); check();
+    // reveals that never fired: large in-flow blocks still transparent with an opacity transition
+    // (small or absolutely positioned ones are menus and tooltips - leave them hidden)
+    for (const [el] of hidden) {
+      const st = getComputedStyle(el), r = el.getBoundingClientRect();
+      if (+st.opacity < 0.5 && /opacity|all/.test(st.transitionProperty) && parseFloat(st.transitionDuration) > 0
+        && !['absolute', 'fixed'].includes(st.position) && r.height > 150 && r.width > innerWidth * 0.5) el.setAttribute('data-rd-revealed', '');
+    }
+    for (const el of document.querySelectorAll('body *')) {
+      const st = getComputedStyle(el);
+      if (['fixed', 'sticky'].includes(st.position)) continue;
+      if (st.transform === 'matrix(1, 0, 0, 1, 0, 0)' || st.willChange !== 'auto') { el.style.setProperty('transform', 'none', 'important'); el.style.setProperty('will-change', 'auto', 'important'); }
+    }
+    scrollTo({ top: 0, behavior: 'instant' });
   }).catch(() => {});
+  await page.addStyleTag({ content: '[data-rd-revealed]{opacity:1!important;transform:none!important;transition:none!important;animation:none!important;visibility:visible!important}' }).catch(() => {});
   await page.waitForTimeout(500);
 }
 
@@ -298,7 +324,7 @@ async function crawlOne(item) {
     if (!brand && (item.depth === 0)) brand = await page.evaluate(extractBrand).catch(() => null);
     if (!args['no-shots']) {
       await shoot(page, path.join(OUT, 'shots', `${slug}--desktop.png`), true);
-      await page.evaluate(() => scrollTo(0, 0));
+      await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
       await shoot(page, path.join(OUT, 'shots', `${slug}--desktop-fold.png`), false);
       rec.shots = { desktop: `shots/${slug}--desktop.png`, desktopFold: `shots/${slug}--desktop-fold.png` };
     }
@@ -353,7 +379,7 @@ async function crawlOne(item) {
       });
       if (!args['no-shots']) {
         await shoot(mp, path.join(OUT, 'shots', `${slug}--mobile.png`), true);
-        await mp.evaluate(() => scrollTo(0, 0));
+        await mp.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
         await shoot(mp, path.join(OUT, 'shots', `${slug}--mobile-fold.png`), false);
         rec.shots = { ...(rec.shots || {}), mobile: `shots/${slug}--mobile.png`, mobileFold: `shots/${slug}--mobile-fold.png` };
       }
@@ -364,10 +390,15 @@ async function crawlOne(item) {
   console.log(`  [${pages.length}/${MAX}] ${rec.status ?? 'ERR'} ${url}${rec.error ? '  ! ' + rec.error : ''}`);
 }
 
+// --priority: with a small --max, crawl the pages an audit needs (contact, quote, services...) first
+const KEY_PAGE = /contact|quote|enquir|book|about|service|install|pricing|prices?\b|repair|emergency|areas?|locations?/i;
+const rank = (q) => (q.depth === 0 ? -1 : KEY_PAGE.test(new URL(q.url).pathname) ? 0 : 1) * 100 + new URL(q.url).pathname.split('/').filter(Boolean).length;
+
 // worker pool
 const active = new Set();
 while ((queue.length || active.size) && pages.length + active.size < MAX) {
   while (queue.length && active.size < CONC && pages.length + active.size < MAX) {
+    if (args.priority) queue.sort((a, b) => rank(a) - rank(b));
     const item = queue.shift();
     const p = crawlOne(item).finally(() => active.delete(p));
     active.add(p);

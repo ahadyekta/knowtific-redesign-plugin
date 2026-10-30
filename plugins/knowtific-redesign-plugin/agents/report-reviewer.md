@@ -23,5 +23,25 @@ Check, and report each problem with location and a suggested fix:
 6. **Layout**: broken images, overflowing tables, page breaks splitting sections, unreadable
    contrast, inconsistent fonts.
 
+## Prospect mode
+
+When asked to review `redesign/03-reports/prospect-report.html`, the reader is a business owner who
+never asked for this review. Points 1-3 and 6 still apply, plus this checklist (it replaces 4-5):
+
+7. **No claim beyond the findings**: every problem, score, metric and competitor fact traces to
+   `findings.json`, `scorecard.json`, `tech/summary.json` or `competitors.md`.
+8. **Nothing that could embarrass** the owner or their current web developer: no mocking, no
+   "outdated", "amateur", "broken" framing, no blame; strengths come first.
+9. **No prices**, packages, quotes or discounts anywhere.
+10. **No unconfirmed facts presented as fact**: nothing marked `[TO CONFIRM]` in the profile may
+    appear as a statement; no interview claims ("you told us"); no guessed revenue or job values.
+11. **Lab vs field data labelled**: Lighthouse numbers called lab tests; real-visitor (PSI field /
+    CrUX) data only if it exists in `tech/`, and named as such.
+12. **One next step** (reply or book a 15-minute call) and the sender's details; the before/after
+    images (if any) show the current page next to the concept.
+
+Placeholder links like "(link added when published)" inside `data-fill` / `data-needs-url`
+elements are filled at publish time - don't flag them.
+
 Return a short verdict (ready / needs fixes) and a numbered list of fixes, most important first.
 Do not rewrite the report yourself.

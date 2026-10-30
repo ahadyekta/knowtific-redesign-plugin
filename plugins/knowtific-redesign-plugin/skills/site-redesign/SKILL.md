@@ -1,6 +1,6 @@
 ---
 name: site-redesign
-description: Run a full redesign engagement for an existing business website - understand the business step by step, audit every page (UI, UX, clarity, conversion, landing pages, SEO, performance, accessibility, brand, positioning, marketing), write an internal agency report and a simpler sellable client report, build an improvement plan, then create 3 brand directions and 3 variations of the 3 key pages with a live comparison viewer. Use when the user asks to redesign, revamp, audit or pitch a redesign for a client's website, or runs /knowtific-redesign-plugin:redesign.
+description: Run a full redesign engagement for an existing business website - understand the business step by step, audit every page (UI, UX, clarity, conversion, landing pages, SEO, performance, accessibility, brand, positioning, marketing), write an internal agency report and a simpler sellable client report, build an improvement plan, then create 3 brand directions and 3 variations of the 3 key pages with a live comparison viewer. Also has an unattended prospect mode (cold prospects: lean audit, one concept, published review, email draft - never asks, never sends). Use when the user asks to redesign, revamp, audit or pitch a redesign for a client's website, runs /knowtific-redesign-plugin:redesign, or runs /knowtific-redesign-plugin:prospect.
 ---
 
 # Site redesign
@@ -22,8 +22,15 @@ visual, convincing). Everything you claim must be backed by evidence from the si
    open-questions list. Variation copy may use clearly marked placeholders, never fake reviews.
 4. **Gates.** Stop for the user's approval at the end of Discovery, Audit, Plan and Brand. Show a
    short summary and the file paths; ask what to change. Do not run the whole pipeline silently.
+   (Prospect mode has no gates - see below.)
 5. **Resume, don't restart.** Read `redesign/state.json` first. Continue from the first phase not
-   marked `done`. Update it after every phase.
+   marked `done`. Update it after every phase. Work left by a prospect run is reused, not redone:
+   `discovery: "site-only"` means the crawl, snapshot, competitors and inferred profile exist, so
+   run **only the interview rounds** of discovery, update `business-profile.md` and the findings
+   the answers change, then continue; `reports: "prospect"`, `brand`/`variations`/`preview:
+   "concept"` mean a prospect version exists - build the full deliverable on top of it. When a
+   state has `mode: "prospect"` and you are not running `:prospect`, switch it to `"client"`
+   first. Details: "When a prospect becomes a client" in `references/prospect-mode.md`.
 6. **Use subagents for fan-out.** Page audits and page variations run in parallel through this
    plugin's agents (see each phase). Give each agent the file paths it needs, not pasted content.
 7. **Australia by default.** Use Australian English, AUD, local SEO (Google Business Profile, suburbs,
@@ -51,6 +58,7 @@ redesign/
   03-reports/
     internal-report.md            for the agency
     client-report.html (+ .pdf)   for the client
+    prospect-report.html (+ .pdf) prospect mode only: the free review for a cold prospect
   04-plan/
     plan.md                       roadmap, sitemap, page plans, KPIs, the 3 key pages
   05-brand/
@@ -61,6 +69,8 @@ redesign/
   preview/                        built by scripts/build-preview.mjs - deployable static site
   preview-report.json             warnings from the last preview build
   decision.json                   exported from the viewer: chosen layout + brand + notes
+  assumptions.md                  prospect mode: every assumption made instead of asking
+  deploy/                         prospect mode: the self-contained published report + concept
 ```
 
 Scripts live in `${CLAUDE_PLUGIN_ROOT}/scripts`. If that variable is not expanded in your shell,
@@ -171,6 +181,31 @@ business; no lorem ipsum.
    read it and write a short decision brief in `04-plan/decision-brief.md` (what was chosen, why,
    changes requested, next build steps).
 
+## Prospect mode (unattended)
+
+`/knowtific-redesign-plugin:prospect <url> | next` runs one cold prospect end to end from cron,
+with nobody at the keyboard. **Read `references/prospect-mode.md` and follow it exactly.** Its rules
+override the ground rules above:
+
+- **Never** call AskUserQuestion, never stop at a gate, never wait for approval. Assume, log the
+  assumption in `redesign/assumptions.md`, mark unknown facts `[TO CONFIRM]`, carry on.
+- **Never** send email or messages, submit forms on the prospect's site, or contact the business
+  in any way. Publishing the report with `publish-prospect.mjs` is the only outward action.
+- Skip (state `skipped` + reason, tick the queue, end) when the site is down or blocks the crawl,
+  isn't a small/medium local business, is a franchise/national chain, already scores >= 8, is in
+  `prospects/suppression.md`, or its domain is already in `prospects/index.csv`.
+- A failed phase is retried once, then recorded in `state.errors`; a partial prospect beats a
+  crashed run. One prospect per run.
+
+Each prospect lives in `prospects/<slug>/` with the normal `redesign/` layout inside, so this skill's
+resume logic works there later. Flow: lean crawl (12 pages, no photos) + tech audit (top 3, PSI) ->
+site-only discovery (snapshot, 3 competitors, inferred profile, published contact email) -> capped
+audit (max 4 page audits + technical, brand review in the main session) -> concept by `depth`
+(`audit`: none, `lite`: 1 "Refresh" brand + 1 home page layout, `full`: phases 5-6 without gates) ->
+prospect report (`templates/prospect-report.html`, no prices) + PDF + `report-reviewer` -> publish
+to Cloudflare Pages -> email draft (never sent) -> `index.csv`, queue tick, `video-notes.md`,
+5-line summary.
+
 ## Tooling notes
 
 - `crawl.mjs` also writes `brand-current.json` (colours, fonts, logo - feeds the "Current" brand
@@ -178,8 +213,12 @@ business; no lorem ipsum.
   broken links and duplicate titles/descriptions/H1s in `site.json`. Large sites: use `--include`,
   `--exclude` or `--urls`; slow sites: `--timeout 60000 --concurrency 2`.
 - Set `CHROME_PATH` to use an existing Chrome/Chromium instead of Playwright's download.
-- `shoot.mjs <file|url> --out dir [--brand id] [--widths 390,834,1440]` screenshots anything and
-  flags overflow, missing mobile CTA and console errors.
+- `shoot.mjs <file|url> --out dir [--brand id] [--widths 390,834,1440] [--fold]` screenshots
+  anything (full page, plus viewport-only `--fold` shots) and flags overflow, missing mobile CTA
+  and console errors.
+- Prospect mode: `prospect.mjs` (queue, targets, suppression, duplicates, slug, contact
+  extraction, `index.csv`) and `publish-prospect.mjs` (deploy folder + Cloudflare Pages).
+- A brand in `brands.json` may set `"logo": {"useCurrent": true}` to reuse the crawled logo.
 - The preview vendors Tailwind's browser build into `_rd/tailwind.js`, so it works offline and on
   any static host. Google Fonts load from Google when online, with fallbacks otherwise.
 
@@ -196,6 +235,10 @@ business; no lorem ipsum.
   "updated": "2026-10-29"
 }
 ```
+
+Phase values: `todo`, `in_progress`, `done`, and from prospect runs `site-only`, `prospect`,
+`concept`, `failed` (see the resume rule). Prospect runs also add `mode`, `depth`, `status`,
+`prospect`, `contact`, `report` and `errors` (schema in `references/prospect-mode.md`).
 
 ## Running a single phase
 

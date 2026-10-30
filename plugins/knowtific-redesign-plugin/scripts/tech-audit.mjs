@@ -104,8 +104,15 @@ async function runPsi() {
 
 console.log(`Technical audit of ${targets.length} page(s), ${formFactor}`);
 const summary = { formFactor, testedAt: new Date().toISOString(), lighthouse: null, psi: null };
-if (!args['psi-only']) summary.lighthouse = await runLighthouse();
-if (args.psi || args['psi-only']) summary.psi = await runPsi();
+// a Lighthouse crash (no Chrome, sandbox) must not stop PSI or the run that called us
+if (!args['psi-only']) {
+  try { summary.lighthouse = await runLighthouse(); }
+  catch (e) { summary.lighthouseError = e.message.split('\n')[0].slice(0, 300); console.log('Lighthouse failed: ' + summary.lighthouseError); }
+}
+if (args.psi || args['psi-only']) {
+  try { summary.psi = await runPsi(); }
+  catch (e) { summary.psiError = e.message.split('\n')[0].slice(0, 300); console.log('PageSpeed Insights failed: ' + summary.psiError); }
+}
 
 // site-level rollup
 const lh = Object.values(summary.lighthouse || {}).filter((x) => x.scores);

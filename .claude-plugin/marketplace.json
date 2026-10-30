@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Knowtific's website redesign plugin for Claude Code.",
-    "version": "1.0.1"
+    "version": "1.1.0"
   },
   "plugins": [
     {
       "name": "knowtific-redesign-plugin",
       "source": "./plugins/knowtific-redesign-plugin",
       "description": "End-to-end website redesign: business discovery, full audit (UI, UX, conversion, SEO, performance, accessibility, brand), internal + client reports, improvement plan, 3 brand directions and 3 variations of 3 key pages with a live comparison viewer.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "category": "design",
       "keywords": [
         "redesign",

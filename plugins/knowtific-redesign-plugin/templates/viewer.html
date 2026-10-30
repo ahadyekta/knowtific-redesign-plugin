@@ -142,9 +142,11 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
 
 @media (max-width: 1100px){ .side{width:290px} }
 @media (max-width: 860px){
-  .main{flex-direction:column}
-  .side{width:auto;border-left:0;border-top:1px solid var(--ui-line);max-height:45vh}
-  .stage{min-height:60vh}
+  .main,.view.on{flex-direction:column}
+  .side{width:auto;border-left:0;border-top:1px solid var(--ui-line)}
+  .stage{min-height:75vh;flex:none;padding:10px;gap:10px}
+  .toolbar{gap:8px 12px;padding:10px 12px}
+  .seg,.chips{max-width:100%;overflow-x:auto}
   .tabs{margin-left:0}
   .top{flex-wrap:wrap}
 }
@@ -196,6 +198,8 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
 (function () {
   'use strict';
   var M = window.RD_MANIFEST || { pages: [], brands: [], warnings: [], errors: [] };
+  // prospect concepts go to a business that never asked: no review tools, before/after by default
+  var PROSPECT = M.mode === 'prospect';
   var DEVICES = [{ id: 'desktop', label: 'Desktop', w: 1440 }, { id: 'tablet', label: 'Tablet', w: 834 }, { id: 'mobile', label: 'Mobile', w: 390 }];
   var STORE_KEY = 'rd-review:' + (M.client || 'client');
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -208,8 +212,12 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
 
   // ---------- UI state (also in URL hash so a link reopens the same view) ----------
   var brandsNew = M.brands.filter(function (b) { return b.id !== 'current'; });
-  var S = { tab: 'pages', page: (M.pages[0] || {}).slug, layout: 'a', brand: (brandsNew[0] || M.brands[0] || {}).id, device: 'desktop', current: false, hideTbc: false };
+  var firstPage = M.pages[0] || {};
+  // on a phone, start with the mobile layout and one column (side by side is too small to read)
+  var narrow = window.innerWidth < 700;
+  var S = { tab: 'pages', page: firstPage.slug, layout: ((firstPage.variants || [])[0] || {}).id || 'a', brand: (brandsNew[0] || M.brands[0] || {}).id, device: narrow ? 'mobile' : 'desktop', current: PROSPECT && !narrow, hideTbc: false };
   function readHash() {
+    if (!location.hash || location.hash.length < 2) return;
     try {
       var h = new URLSearchParams(location.hash.slice(1));
       ['tab', 'page', 'layout', 'brand', 'device'].forEach(function (k) { if (h.get(k)) S[k] = h.get(k); });
@@ -229,10 +237,11 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
   var device = function () { return DEVICES.filter(function (d) { return d.id === S.device; })[0]; };
 
   // ---------- header ----------
-  $('#clientName').textContent = (M.client || 'Client') + ' · Redesign preview';
-  document.title = (M.client || 'Client') + ' – Redesign preview';
-  if (M.site) $('#clientSite').innerHTML = 'Current site: <a href="' + esc(M.site) + '" target="_blank" rel="noopener">' + esc(M.site.replace(/^https?:\/\//, '')) + '</a>';
-  var probs = (M.errors || []).concat(M.warnings || []);
+  $('#clientName').textContent = (M.client || 'Client') + (PROSPECT ? ' · Website design concept' : ' · Redesign preview');
+  document.title = (M.client || 'Client') + (PROSPECT ? ' – Design concept' : ' – Redesign preview');
+  if (M.site) $('#clientSite').innerHTML = (PROSPECT ? 'A concept by Knowtific, not a live website · Current site: ' : 'Current site: ') + '<a href="' + esc(M.site) + '" target="_blank" rel="noopener">' + esc(M.site.replace(/^https?:\/\//, '')) + '</a>';
+  if (PROSPECT) { $('[data-tab="decision"]').style.display = 'none'; $('#exportBtn').style.display = 'none'; }
+  var probs = PROSPECT ? [] : (M.errors || []).concat(M.warnings || []);
   if (probs.length) {
     var b = $('#warnBadge'); b.hidden = false; b.textContent = probs.length + ' build warning' + (probs.length > 1 ? 's' : '');
     $('#warnList').innerHTML = probs.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('');
@@ -357,14 +366,17 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
         '<div class="muted" style="font-weight:700;font-size:12px">' + esc(p.label) + ' · Layout ' + esc(v.id.toUpperCase()) + '</div>' +
         '<h2>' + esc(v.label) + '</h2><p>' + esc(v.strategy || '') + '</p>' +
         (v.fixes && v.fixes.length ? '<h3>Fixes from the audit</h3>' + v.fixes.map(function (f) { return '<div class="fix"><span class="pill ' + esc(f.priority || '') + '">' + esc(f.id) + '</span><span>' + esc(f.title || '') + '</span></div>'; }).join('') : '') +
-        (v.tbc ? '<p style="margin-top:10px" class="muted">' + v.tbc + ' fact(s) marked “to confirm” with the client.</p>' : '') +
-        (v.issues && v.issues.length ? '<h3>Build warnings</h3><ul class="issues">' + v.issues.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+        (v.tbc ? '<p style="margin-top:10px" class="muted">' + v.tbc + ' fact(s) marked “to confirm”' + (PROSPECT ? ' – placeholders until we talk.' : ' with the client.') + '</p>' : '') +
+        (PROSPECT ? '' : (v.issues && v.issues.length ? '<h3>Build warnings</h3><ul class="issues">' + v.issues.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
         '<h3>Your rating</h3>' + starsHtml(key) +
         '<h3>Notes</h3><textarea data-note="' + esc(key) + '" placeholder="What works, what to change…">' + esc(R.notes[key] || '') + '</textarea>' +
-        '<button type="button" class="btn pick" data-pick="' + esc(v.id) + '" aria-pressed="' + picked + '">' + (picked ? '✓ Chosen for ' + esc(p.label) : 'Choose this layout for ' + esc(p.label)) + '</button>';
+        '<button type="button" class="btn pick" data-pick="' + esc(v.id) + '" aria-pressed="' + picked + '">' + (picked ? '✓ Chosen for ' + esc(p.label) : 'Choose this layout for ' + esc(p.label)) + '</button>');
     });
     var b = brand();
-    if (b) html += '<hr style="border:0;border-top:1px solid var(--ui-line);margin:22px 0"><div class="muted" style="font-weight:700;font-size:12px">Brand</div><h2>' + esc(b.name) + '</h2><p>' + esc(b.tagline || b.concept || '') + '</p>' + starsHtml('brand:' + b.id) +
+    if (PROSPECT) {
+      if (b) html += '<hr style="border:0;border-top:1px solid var(--ui-line);margin:22px 0"><div class="muted" style="font-weight:700;font-size:12px">Brand</div><h2>' + esc(b.name) + '</h2><p>' + esc(b.concept || b.tagline || '') + '</p>';
+      html += '<p style="margin-top:18px;font-size:12px">This is a design concept made from your public website. It is not live, forms don’t send anything, and details marked “to confirm” are placeholders.</p>';
+    } else if (b) html += '<hr style="border:0;border-top:1px solid var(--ui-line);margin:22px 0"><div class="muted" style="font-weight:700;font-size:12px">Brand</div><h2>' + esc(b.name) + '</h2><p>' + esc(b.tagline || b.concept || '') + '</p>' + starsHtml('brand:' + b.id) +
       '<button type="button" class="btn pick" data-pick-brand="' + esc(b.id) + '" aria-pressed="' + (R.picks.brand === b.id) + '">' + (R.picks.brand === b.id ? '✓ Chosen brand' : 'Choose this brand') + '</button>';
     side.innerHTML = html;
     bindReview(side); bindPicks(side);
@@ -411,9 +423,10 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
         (b.imagery ? '<div class="kv"><b>Imagery</b>' + esc(b.imagery) + '</div>' : '') +
         '<details><summary>Contrast checks</summary><table class="ctable">' + (b.contrast || []).map(function (x) { var pass = x.ratio !== null && x.ratio >= x.min; return '<tr><td>' + esc(x.fg) + ' on ' + esc(x.bg) + '</td><td class="' + (pass ? 'ok' : 'no') + '">' + (x.ratio === null ? '–' : x.ratio + ':1') + (pass ? ' ✓' : ' ✕') + '</td></tr>'; }).join('') + '</table></details>' +
         (b.rationale ? '<details><summary>Why this direction</summary><p>' + esc(b.rationale) + '</p></details>' : '') +
+        (PROSPECT ? '</div><div class="bfoot"><button type="button" class="btn" style="margin-left:auto" data-try="' + esc(b.id) + '">Try on pages</button></div></article>' :
         '<textarea data-note="brand:' + esc(b.id) + '" placeholder="Notes on this direction…">' + esc(R.notes['brand:' + b.id] || '') + '</textarea>' +
         '</div><div class="bfoot">' + starsHtml('brand:' + b.id) + '<button type="button" class="btn" style="margin-left:auto" data-try="' + esc(b.id) + '">Try on pages</button>' +
-        '<button type="button" class="btn ' + (picked ? 'primary' : '') + '" data-pick-brand="' + esc(b.id) + '" aria-pressed="' + picked + '">' + (picked ? '✓ Chosen' : 'Choose') + '</button></div></article>';
+        '<button type="button" class="btn ' + (picked ? 'primary' : '') + '" data-pick-brand="' + esc(b.id) + '" aria-pressed="' + picked + '">' + (picked ? '✓ Chosen' : 'Choose') + '</button></div></article>');
     }).join('');
     bindReview(g); bindPicks(g);
     g.querySelectorAll('[data-try]').forEach(function (bt) { bt.onclick = function () { S.brand = bt.getAttribute('data-try'); S.tab = 'pages'; renderTabs(); renderPages(); }; });

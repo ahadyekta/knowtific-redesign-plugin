@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{{Business}} – A free review of your website</title>
+<!--
+  PROSPECT REPORT TEMPLATE (knowtific-redesign-plugin, prospect mode)
+  For a business that did NOT ask for this: short, kind, factual, no prices.
+  - Fill every {{...}}. Repeat the blocks marked "repeat: name" ... "/repeat". Delete the comments
+    that explain the template, keep the ones you like.
+  - Only facts from the public website, the crawl, the audit and public research. Never show a
+    [TO CONFIRM] fact, never mention an interview, never guess revenue or job values.
+  - Image paths are relative to redesign/03-reports/. publish-prospect.mjs copies every image into
+    deploy/img/ and rewrites the paths, so keep them relative (../02-audit/..., ../06-variations/...).
+  - Links filled at publish time: <a data-fill="report-url|concept-url|pdf-url">. Wrap any sentence
+    that only makes sense online in an element with data-needs-url (a <p> or <span>, no nested
+    element of the same tag) - it is removed when the report is not published.
+  - Australian English. Render: node scripts/to-pdf.mjs prospect-report.html
+-->
+<style>
+@page { size: A4; margin: 0; }
+:root{
+  --agency:#1F3A5F; --agency-ink:#fff; --accent:#E9A23B;
+  --ink:#1B1E23; --muted:#5E6570; --line:#E4E6EA; --soft:#F5F6F8;
+  --good:#1E7B4D; --ok:#B7791F; --bad:#C0392B;
+}
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:#E9EAEE;color:var(--ink);font:11pt/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif}
+img{max-width:100%}
+a{color:var(--agency)}
+.page{width:210mm;min-height:297mm;margin:12mm auto;background:#fff;padding:18mm 18mm 20mm;position:relative;page-break-after:always;break-after:page;box-shadow:0 2px 16px rgba(0,0,0,.08);overflow:hidden}
+.page:last-child{page-break-after:auto;break-after:auto}
+@media print{ body{background:#fff} .page{margin:0;box-shadow:none} .webonly{display:none!important} }
+h1,h2,h3{line-height:1.15;margin:0 0 6mm;letter-spacing:-.01em}
+h1{font-size:30pt} h2{font-size:20pt} h3{font-size:13pt;margin-bottom:2mm}
+p{margin:0 0 3mm} .muted{color:var(--muted)} .small{font-size:9pt}
+.eyebrow{font-size:8.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--agency);margin-bottom:3mm}
+.foot{position:absolute;left:18mm;right:18mm;bottom:9mm;display:flex;justify-content:space-between;gap:6mm;font-size:8pt;color:var(--muted)}
+
+/* web-only bar (removed in print) */
+.webbar{max-width:210mm;margin:12mm auto -6mm;padding:0 2mm;font-size:10pt;color:var(--muted)}
+
+/* cover */
+.cover{height:297mm;background:var(--agency);color:var(--agency-ink);display:flex;flex-direction:column;padding:22mm 18mm}
+.cover .eyebrow{color:var(--accent)}
+.cover h1{font-size:36pt;margin-top:auto;margin-bottom:3mm}
+.cover .sub{font-size:15pt;opacity:.9;max-width:150mm}
+.cover .meta{margin-top:10mm;font-size:10pt;opacity:.8}
+.cover .shots{display:flex;gap:6mm;align-items:flex-end;margin-top:12mm}
+.cover .shots img{border-radius:3mm;box-shadow:0 6px 24px rgba(0,0,0,.35);background:#fff;display:block}
+.cover .shots .d{width:118mm;height:74mm;object-fit:cover;object-position:top}
+.cover .shots .m{width:36mm;height:74mm;object-fit:cover;object-position:top}
+.cover .cap{font-size:9pt;opacity:.75;margin-top:2mm}
+
+/* blocks */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.box{background:var(--soft);border-radius:3mm;padding:5mm}
+.box h3{font-size:11pt}
+ul.tidy{margin:0;padding-left:4.5mm} ul.tidy li{margin:0 0 1.5mm}
+.lead{font-size:12.5pt;margin-bottom:6mm}
+
+/* scorecard */
+.overall{display:flex;align-items:center;gap:6mm;margin-bottom:6mm}
+.overall .big{font-size:40pt;font-weight:800;color:var(--agency);line-height:1;white-space:nowrap}
+.bar{display:grid;grid-template-columns:44mm 1fr 12mm;align-items:center;gap:1mm 4mm;padding:2.2mm 0;border-bottom:1px solid var(--line)}
+.bar .track{height:3.2mm;background:var(--soft);border-radius:2mm;overflow:hidden}
+.bar .fill{height:100%;border-radius:2mm}
+.bar .why{grid-column:2 / 4;font-size:9pt;color:var(--muted)}
+.lv-bad{background:var(--bad)} .lv-ok{background:var(--ok)} .lv-good{background:var(--good)}
+.bar b:last-of-type{text-align:right}
+.scale{margin-top:6mm;font-size:9pt}
+
+/* issues */
+.problem{display:grid;grid-template-columns:62mm 1fr;gap:6mm;padding:5mm 0;border-bottom:1px solid var(--line);break-inside:avoid}
+.problem img{width:100%;height:46mm;object-fit:cover;object-position:top;border-radius:2mm;border:1px solid var(--line);display:block}
+.problem .n{display:inline-block;background:var(--agency);color:#fff;font-weight:800;border-radius:50%;width:6.5mm;height:6.5mm;text-align:center;line-height:6.5mm;font-size:9pt;margin-right:2mm}
+.problem .fix{margin-top:2mm;font-size:10pt}
+.problem .fix b{color:var(--good)}
+
+/* speed */
+table.cmp{width:100%;border-collapse:collapse;font-size:9.5pt}
+table.cmp th,table.cmp td{padding:2.5mm 2mm;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp th{font-size:8pt;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+.y{color:var(--good);font-weight:700} .no{color:var(--bad);font-weight:700} .mid{color:var(--ok);font-weight:700}
+.datatag{display:inline-block;font-size:8pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:1.5mm;padding:.6mm 2mm;background:var(--soft);color:var(--muted)}
+.wins li{margin-bottom:2.5mm}
+
+/* before / after */
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-bottom:6mm}
+.ba figure{margin:0}
+.ba img{width:100%;border-radius:2mm;border:1px solid var(--line);display:block;object-fit:cover;object-position:top}
+.ba .dsk img{height:54mm}
+.ba.mob{grid-template-columns:1fr 1fr;justify-items:center}
+.ba.mob figure{width:48mm}
+.ba.mob img{height:100mm}
+.ba figcaption{font-size:9pt;color:var(--muted);margin-top:1.5mm}
+.ba figcaption b{color:var(--ink)}
+
+/* next step */
+.cta{background:var(--agency);color:var(--agency-ink);border-radius:3mm;padding:8mm;margin-top:8mm}
+.cta h2{margin-bottom:3mm}
+.cta a{color:var(--agency-ink)}
+.cta .who{margin-top:4mm;font-size:10pt;opacity:.9}
+
+/* phones and narrow windows: the same report, readable without zooming */
+@media screen and (max-width: 860px){
+  body{background:#fff;font-size:16px}
+  .webbar{margin:0;padding:12px 18px;border-bottom:1px solid var(--line)}
+  .page{width:auto;min-height:0;margin:0;padding:32px 18px 28px;box-shadow:none;border-bottom:10px solid #E9EAEE}
+  .cover{height:auto;min-height:92vh;padding:36px 18px}
+  .cover h1{font-size:34px;margin-top:40px} .cover .sub{font-size:18px}
+  .cover .shots .d{width:68%;height:auto;aspect-ratio:16/10} .cover .shots .m{width:28%;height:auto;aspect-ratio:9/19}
+  h1{font-size:30px} h2{font-size:24px} h3{font-size:18px}
+  .grid2,.ba,.ba.mob{grid-template-columns:1fr}
+  .ba.mob figure{width:70%;margin:0 auto}
+  .ba .dsk img{height:auto} .ba.mob img{height:auto}
+  .problem{grid-template-columns:1fr}
+  .problem img{height:auto;max-height:320px}
+  .bar{grid-template-columns:38% 1fr 12%}
+  .overall .big{font-size:44px}
+  .foot{position:static;margin-top:28px;flex-direction:column;gap:2px}
+}
+</style>
+</head>
+<body>
+
+<!-- Web-only bar: removed when not published, hidden in print -->
+<p class="webbar webonly" data-needs-url>Prefer paper? <a data-fill="pdf-url" href="#">Download this review as a PDF</a></p>
+
+<!-- 1. COVER -->
+<section class="page cover">
+  <div class="eyebrow">A free review of your website</div>
+  <h1>{{Business}}</h1>
+  <p class="sub">{{One kind, specific line, e.g. “What your website does well, and three changes that could bring in more quote requests from people on their phones.”}}</p>
+  <div class="shots">
+    <img class="d" src="../02-audit/crawl/shots/home--desktop-fold.png" alt="Your home page today on a computer">
+    <img class="m" src="../02-audit/crawl/shots/home--mobile-fold.png" alt="Your home page today on a phone">
+  </div>
+  <p class="cap">Your home page today, on a computer and on a phone ({{Date}}).</p>
+  <div class="meta">Prepared by Knowtific · {{Date}} · {{Site URL without https://}}</div>
+</section>
+
+<!-- 2. WHAT WE SEE ON YOUR WEBSITE (only from the site - no interview claims, no [TO CONFIRM] facts) -->
+<section class="page">
+  <div class="eyebrow">What we see on your website</div>
+  <h2>{{One-sentence summary of the business as the site presents it, e.g. “A family-run plumbing business looking after homes in the Yarra Valley.”}}</h2>
+  <p class="lead">{{2-3 sentences: what stands out in a good way. Start with genuine strengths (real photos, reviews, years, clear phone number...).}}</p>
+  <div class="grid2">
+    <div class="box"><h3>What you do</h3><ul class="tidy"><li>{{Services named on the site}}</li></ul></div>
+    <div class="box"><h3>Who it’s for</h3><ul class="tidy"><li>{{Who the copy speaks to}}</li></ul></div>
+    <div class="box"><h3>Where</h3><ul class="tidy"><li>{{Suburbs / area named on the site}}</li></ul></div>
+    <div class="box"><h3>How visitors get in touch</h3><ul class="tidy"><li>{{Phone, form, email, booking - where they sit on the page}}</li></ul></div>
+  </div>
+  <p class="muted small" style="margin-top:6mm">We only looked at your public website and public search results. If we’ve got something wrong, that’s on us. Tell us and we’ll fix it.</p>
+  <div class="foot"><span>{{Date}} · Based on the public website on {{Date}}</span><span>2</span></div>
+</section>
+
+<!-- 3. SCORECARD (max 8 bars; class lv-bad <5, lv-ok 5-6.9, lv-good 7+; merge dimensions to fit) -->
+<section class="page">
+  <div class="eyebrow">How your website scores today</div>
+  <div class="overall"><div class="big">{{5.4}}<span style="font-size:16pt;color:var(--muted)">/10</span></div><p class="muted" style="margin:0">{{One kind sentence on what the score means for enquiries.}}</p></div>
+  <!-- repeat: bar -->
+  <div class="bar"><b>{{Clear message}}</b><div class="track"><div class="fill lv-ok" style="width:{{60}}%"></div></div><b>{{6}}</b><div class="why">{{Plain-English reason, under 20 words}}</div></div>
+  <!-- /repeat -->
+  <p class="muted scale">How to read this: 5 is about average for a small business website in Australia. 8 would put you ahead of the local competitors we looked at. 10 means there is nothing worth fixing.</p>
+  <div class="foot"><span>{{Date}} · Based on the public website on {{Date}}</span><span>3</span></div>
+</section>
+
+<!-- 4. ISSUES MOST LIKELY COSTING ENQUIRIES (3-5; max 3 per page - copy the page for #4-5) -->
+<section class="page">
+  <div class="eyebrow">What’s most likely costing you enquiries</div>
+  <h2>{{3}} things worth fixing first</h2>
+  <!-- repeat: problem -->
+  <div class="problem">
+    <img src="../02-audit/crawl/shots/{{slug}}--mobile-fold.png" alt="{{What the screenshot shows}}">
+    <div>
+      <h3><span class="n">1</span>{{Problem in customer terms}}</h3>
+      <p>{{What a real visitor experiences. A number if you have one. Kind, no blame.}}</p>
+      <p class="fix"><b>The fix:</b> {{One sentence}}</p>
+    </div>
+  </div>
+  <!-- /repeat -->
+  <div class="foot"><span>{{Date}} · Based on the public website on {{Date}}</span><span>4</span></div>
+</section>
+
+<!-- 5. SPEED AND GOOGLE + 6. QUICK WINS -->
+<section class="page">
+  <div class="eyebrow">Speed and Google</div>
+  <h2>{{e.g. “On a phone, your home page takes about 6 seconds to show its main picture.”}}</h2>
+  <p>{{Plain words: Google’s speed test scores pages from 0 to 100; above 90 is fast, under 50 is slow. Say what the main picture time means for someone on mobile data.}}</p>
+  <div class="tablewrap">
+  <table class="cmp">
+    <thead><tr><th>Page</th><th>Phone speed score</th><th>Main picture appears</th><th>Google basics (SEO)</th></tr></thead>
+    <tbody>
+      <!-- repeat: row (class y >= 90, mid 50-89, no < 50) --><tr><td>{{Home}}</td><td class="mid">{{62}}/100</td><td>{{4.8}} s</td><td>{{92}}/100</td></tr><!-- /repeat -->
+    </tbody>
+  </table>
+  </div>
+  <p class="small muted" style="margin-top:3mm"><span class="datatag">{{Lab test}}</span> {{Say exactly what the numbers are: “Lab test: a simulated mid-range phone on a 4G connection (Google Lighthouse), run on {{Date}}.” and, only if PSI field data exists: “Real visitors: Google’s Chrome data from the last 28 days shows ...”. If there is no real-visitor data, say “Google doesn’t have enough real-visitor data for your site yet, so these are lab tests.”}}</p>
+
+  <div class="eyebrow" style="margin-top:9mm">Quick wins you could do this week</div>
+  <h3>Even without us</h3>
+  <ul class="tidy wins">
+    <li>{{Concrete, doable by the owner or their current web person, e.g. “Put your phone number in the top-right corner, as a tap-to-call link on phones.”}}</li>
+  </ul>
+  <div class="foot"><span>{{Date}} · Based on the public website on {{Date}}</span><span>5</span></div>
+</section>
+
+<!-- 7. BEFORE / AFTER (depth lite/full only - delete this page for depth "audit") -->
+<section class="page">
+  <div class="eyebrow">Before and after</div>
+  <h2>{{What the concept changes, e.g. “Same business, clearer first screen: what you do, where, and one tap to call.”}}</h2>
+  <p>{{1-2 sentences: which issues the concept fixes. It’s a concept from your public website, not a finished site.}}</p>
+  <div class="ba dsk">
+    <figure><img src="../02-audit/crawl/shots/home--desktop-fold.png" alt="Your home page today on a computer"><figcaption><b>Today</b> · on a computer</figcaption></figure>
+    <figure><img src="../06-variations/home/_shots/a--1440-fold.png" alt="Concept home page on a computer"><figcaption><b>Concept</b> · on a computer</figcaption></figure>
+  </div>
+  <div class="ba mob">
+    <figure><img src="../02-audit/crawl/shots/home--mobile-fold.png" alt="Your home page today on a phone"><figcaption><b>Today</b> · on a phone</figcaption></figure>
+    <figure><img src="../06-variations/home/_shots/a--390-fold.png" alt="Concept home page on a phone"><figcaption><b>Concept</b> · on a phone</figcaption></figure>
+  </div>
+  <p data-needs-url>Try the full concept on your phone: <a data-fill="concept-url" href="#">(link added when published)</a></p>
+  <div class="foot"><span>{{Date}} · Based on the public website on {{Date}}</span><span>6</span></div>
+</section>
+
+<!-- 8. HOW YOU COMPARE LOCALLY + 9. ONE NEXT STEP -->
+<section class="page">
+  <div class="eyebrow">How you compare locally</div>
+  <h2>{{e.g. “Three other plumbers people find when they search ‘plumber Lilydale’.”}}</h2>
+  <p>{{One line: factual, no trash talk. What they do that helps them get the call.}}</p>
+  <div class="tablewrap">
+  <table class="cmp">
+    <thead><tr><th></th><th>{{Business}}</th><th>{{Competitor 1}}</th><th>{{Competitor 2}}</th></tr></thead>
+    <tbody>
+      <!-- repeat: row (only facts you saw on each site) --><tr><td>{{Tap-to-call at the top on phones}}</td><td class="no">No</td><td class="y">Yes</td><td class="y">Yes</td></tr><!-- /repeat -->
+    </tbody>
+  </table>
+  </div>
+
+  <div class="cta">
+    <h2>{{One next step, e.g. “Want to talk it through? 15 minutes, no obligation.”}}</h2>
+    <p style="margin:0">{{Reply to the email this came with, or book a 15-minute call: phone / booking link from config. Nothing to pay and no obligation.}}</p>
+    <p class="who">{{Sender name}} · Knowtific · {{Phone}} · {{Email}} · {{knowtific.com.au}}</p>
+  </div>
+  <p class="muted small" style="margin-top:6mm">This review was made from your public website and public search results on {{Date}}. We didn’t submit any forms or contact your customers. If you’d rather not hear from us again, just reply “no thanks”.</p>
+  <div class="foot"><span>{{Date}} · Based on the public website on {{Date}}</span><span>7</span></div>
+</section>
+
+</body>
+</html>
